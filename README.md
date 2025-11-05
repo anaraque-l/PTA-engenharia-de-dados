@@ -43,7 +43,7 @@ Este projeto foi desenvolvido para o Processo de Treinamento de Área (PTA) do C
 ## Como Instalar
 <br/>
 
-1. Certifique-se de que o **Docker** e o **Docker Compose** estão instalados em sua máquina.
+1. Certifique-se de que o **Python** e o **Docker Desktop** estão instalados em sua máquina.
 
 2. Clone o repositório:
 
