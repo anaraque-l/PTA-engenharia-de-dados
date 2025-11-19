@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routers.vendedor_routes import router as vendedor_router
+from app.routers.itenspedidos_routes import router as itenspedidos_router
 from app.routers.example import router as example_router
 
 app = FastAPI(
@@ -10,6 +11,7 @@ app = FastAPI(
 
 # REGISTRO DOS ROUTERS
 app.include_router(vendedor_router, prefix="/vendedores", tags=["Vendedores"])
+app.include_router(itenspedidos_router, prefix="/itens-pedidos", tags=["ItensPedidos"])
 app.include_router(example_router, prefix="/example", tags=["Example"])
 
 # ROTAS FIXAS
