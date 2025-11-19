@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import uvicorn
 from app.routers.vendedor_routes import router as vendedor_router
 from app.routers.itenspedidos_routes import router as itenspedidos_router
 from app.routers.example import router as example_router
