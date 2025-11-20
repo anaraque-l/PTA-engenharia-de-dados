@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class ProdutoRaw(BaseModel):
 
     categoria: str | None = None 
