@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
+from app.routers import pedidos_router
 from app.routers import example_router
 
 app = FastAPI(
@@ -15,5 +16,7 @@ async def read_root():
 @app.get("/health", description="Verifica a saúde da API.")
 async def health_check():
     return {"status": "ok"}
+
+app.include_router(pedidos_router.router, prefix="/api/v1")
 
 app.include_router(example_router, prefix="/example", tags=["Example"])
