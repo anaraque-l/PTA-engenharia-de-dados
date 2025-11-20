@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
-from app.schemas.itenspedidos_raw import ItensPedidosRaw
-from app.schemas.itenspedidos_clean import ItensPedidosClean
+from app.schemas.itenspedidos_schema import ItensPedidosRaw
+from app.schemas.itenspedidos_schema import ItensPedidosClean
 
 def limpar_um_item(raw: ItensPedidosRaw) -> ItensPedidosClean:
 
