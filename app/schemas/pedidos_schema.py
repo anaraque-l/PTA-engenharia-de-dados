@@ -20,3 +20,5 @@ class PedidosClean(BaseModel):
     order_delivered_carrier_date: datetime | None
     order_delivered_customer_date: datetime | None
     order_estimated_delivery_date: date
+
+print("Processamento iniciado.") # linha de teste para pr 
