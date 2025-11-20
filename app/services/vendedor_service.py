@@ -1,6 +1,6 @@
 import re
-from app.schemas.vendedor_raw import VendedorRaw
-from app.schemas.vendedor_clean import VendedorClean
+from app.schemas.vendedor_schema import VendedorRaw
+from app.schemas.vendedor_schema import VendedorClean
 
 def limpar_um_vendedor(raw: VendedorRaw) -> VendedorClean:
 
