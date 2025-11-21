@@ -10,10 +10,9 @@ app = FastAPI(
 
 @app.get("/", description="Mensagem de boas-vindas da API.")
 async def read_root():
-    return {"message": "Bem-vindo à API de Tratamento de Dados!"}
+    return {"message": "Oieeeeee"}
 
 @app.get("/health", description="Verifica a saúde da API.")
 async def health_check():
     return {"status": "ok"}
 
-app.include_router(example_router, prefix="/example", tags=["Example"])
