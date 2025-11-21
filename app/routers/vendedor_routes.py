@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from typing import List
 from app.schemas.vendedor_schema import VendedorRaw
-from app.schemas.vendedor_clean import VendedorClean
+from app.schemas.vendedor_schema import VendedorClean
 from app.services.vendedor_service import limpar_um_vendedor
 
 router = APIRouter()
