@@ -8,4 +8,4 @@ router = APIRouter()
 
 @router.post("/limpar-produtos", response_model=List[ProdutoClean])
 async def tratar_pedidos(dados: List[ProdutoRaw]) -> List[ProdutoClean]:
-    return [tratar_produtos(produto) for produto in dados]
+    return tratar_produtos(dados)
