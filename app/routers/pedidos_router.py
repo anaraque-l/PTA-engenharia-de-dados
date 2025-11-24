@@ -7,4 +7,15 @@ router = APIRouter()
 
 @router.post("/limpar-pedidos", response_model=List[PedidosClean])
 async def tratar_pedidos(dados: List[PedidosRaw]) -> List[PedidosClean]:
-    return [tratar_pedido(pedido) for pedido in dados]
+    
+    lista_pedidos = []
+
+    for pedido in dados:
+        try:
+            pedido_tratado = tratar_pedido(pedido)
+        except ValueError:
+            continue
+
+        lista_pedidos.append(pedido_tratado)
+
+    return lista_pedidos
