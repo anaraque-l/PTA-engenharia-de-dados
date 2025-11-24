@@ -1,5 +1,21 @@
 import pandas as pd
+from typing import Optional
+from datetime import datetime
 from app.schemas.pedidos_schema import PedidosRaw, PedidosClean
+
+def parse_date(valor: Optional[str]) -> Optional[datetime]:
+    
+    if not valor:
+        return None
+    
+    dt = pd.to_datetime(valor, errors="coerce")
+    
+    if pd.isna(dt):
+        return None
+    else:
+        return dt.to_pydatetime()
+    
+    
 
 def tratar_pedido(dados: PedidosRaw) -> PedidosClean:
 
@@ -11,87 +27,28 @@ def tratar_pedido(dados: PedidosRaw) -> PedidosClean:
 #--------------------------------------------------------------------------------------------------------------------------------------
 
     #Corrigindo as datas
-    if type(dados.order_purchase_timestamp) == str:
-        valor = (dados.order_purchase_timestamp).strip()
-    else:
-        valor = dados.order_purchase_timestamp
+    order_purchase_timestamp = parse_date(dados.order_purchase_timestamp)
 
-    dt = pd.to_datetime(valor, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-    if pd.isna(dt):  
-        order_purchase_timestamp = pd.to_datetime("1970-01-01 00:00:00")
-    else:
-        order_purchase_timestamp = dt
+    if order_purchase_timestamp is None: #Lança o erro em caso de campo obrigatório inválido
+        raise ValueError("order_purchase_timestamp == None")
 
 #-----------------
 
-    if type(dados.order_approved_at) == str:
-        valor = (dados.order_approved_at).strip()
-    else:
-        valor = dados.order_approved_at
-
-    dt = pd.to_datetime(valor, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-    if pd.isna(dt):  
-        order_approved_at = pd.to_datetime("1970-01-01 00:00:00")
-    else:
-        order_approved_at = dt
+    order_approved_at = parse_date(dados.order_approved_at)
 
 #-----------------
 
-    if type(dados.order_delivered_carrier_date) == str:
-        valor = (dados.order_delivered_carrier_date).strip()
-    else:
-        valor = dados.order_delivered_carrier_date
-
-    dt = pd.to_datetime(valor, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-    if pd.isna(dt):  
-        order_delivered_carrier_date = pd.to_datetime("1970-01-01 00:00:00")
-    else:
-        order_delivered_carrier_date = dt
+    order_delivered_carrier_date = parse_date(dados.order_delivered_carrier_date)
 
 #-----------------
 
-    if type(dados.order_delivered_customer_date) == str:
-        valor = (dados.order_delivered_customer_date).strip()
-    else:
-        valor = dados.order_delivered_customer_date
-
-    dt = pd.to_datetime(valor, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-    if pd.isna(dt):  
-        order_delivered_customer_date = pd.to_datetime("1970-01-01 00:00:00")
-    else:
-        order_delivered_customer_date = dt
+    order_delivered_customer_date = parse_date(dados.order_delivered_customer_date)
 
 #-----------------
 
-    if type(dados.order_approved_at) == str:
-        valor = (dados.order_approved_at).strip()
-    else:
-        valor = dados.order_approved_at
+    order_estimated_delivery_date = parse_date(dados.order_estimated_delivery_date)
 
-    dt = pd.to_datetime(valor, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-    if pd.isna(dt):  
-        order_approved_at = pd.to_datetime("1970-01-01 00:00:00")
-    else:
-        order_approved_at = dt
-
-#-----------------
-
-    if type(dados.order_estimated_delivery_date) == str:
-        valor = (dados.order_estimated_delivery_date).strip()
-    else:
-        valor = dados.order_estimated_delivery_date
-
-    dt = pd.to_datetime(valor, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-
-    if pd.isna(dt):  
-        order_estimated_delivery_date = pd.to_datetime("1970-01-01 00:00:00").date()
-    else:
-        order_estimated_delivery_date = dt.date()
+    order_estimated_delivery_date = (order_estimated_delivery_date.date() if order_estimated_delivery_date else None)
 
 #--------------------------------------------------------------------------------------------------------------------------------------
 
