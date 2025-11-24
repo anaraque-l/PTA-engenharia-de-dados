@@ -1,25 +1,22 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-import pandas as pd # Vamos usar para limpar dados!
+import uvicorn
 
-app = FastAPI()
-# O Cardápio (Define o formato do dado que aceitamos)
-class Pedido(BaseModel):
-    nome_produto: str
-    preco: float | None = None # Aceita nulo
+from app.routers.produto_router import router as produto_router
 
-# A Rota (Onde o Garçom atende)
-@app.post("/limpar-dados")
-def limpar_dados(pedido: Pedido):
-    # 1. Tratamento de String (Simples)
-    nome_limpo = pedido.nome_produto.lower().strip().replace(" ", "_") 
-    # 2. Tratamento de Nulo (Lógica de Negócio)
-    if pedido.preco is None:
-        preco_final = 0.0 # No desafio real, aqui entra a Mediana!
-    else:
-        preco_final = pedido.preco
-    return {
-    "status": "sucesso",
-    "nome_tratado": nome_limpo,
-    "preco_final": preco_final
-}
+app = FastAPI(
+    title="API de Tratamento de Dados - Desafio 1",
+    description="API que recebe dados brutos, os trata e os devolve limpos.",
+    version="1.0.0"
+)
+
+# REGISTRO DOS ROUTERS
+app.include_router(produto_router, prefix="/produto", tags=["Produtos"])
+
+# ROTAS FIXAS
+@app.get("/", description="Mensagem de boas-vindas da API.")
+async def read_root():
+    return {"message": "Bem-vindo à API de Tratamento de Dados!"}
+
+@app.get("/health", description="Verifica a saúde da API.")
+async def health_check():
+    return {"status": "ok"}
