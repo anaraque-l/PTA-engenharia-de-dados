@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class ProdutoRaw(BaseModel):
-
+    product_id: str | None = None
     product_category_name: str | None = None 
     product_name_lenght: str | None = None
     product_description_lenght: str | None = None 
@@ -15,7 +15,7 @@ class ProdutoRaw(BaseModel):
     product_width_cm: str | None = None 
     
 class ProdutoClean(BaseModel):
-
+    product_id: str
     categoria_limpa: str
     len_nome_limpa: int
     len_descr_limpa: int
