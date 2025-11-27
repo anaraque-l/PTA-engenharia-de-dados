@@ -1,38 +1,37 @@
-from typing import List, Set
+from fastapi import APIRouter
+from typing import List, Optional
+import logging
 
-from fastapi import APIRouter, Depends
+from app.schemas.itenspedidos_schema import ItensPedidosRaw
+from app.schemas.itenspedidos_schema import ItensPedidosClean
+from app.services.itenspedidos_service import limpar_um_item
 
-from app.schemas.itenspedidos_schema import ItensPedidosRaw, ItensPedidosClean
-from app.services.itenspedidos_service import limpar_itens_pedidos
+# Configura o logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+@router.post("/limpar-itens-pedidos", response_model=List[ItensPedidosClean])
+def limpar_itens(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
+    
+    # Lista para armazenar apenas os registros limpos e válidos
+    itens_limpos: List[ItensPedidosClean] = []
+    
+    # Processa cada item individualmente para aplicar o descarte seletivo
+    for i, item_raw in enumerate(dados):
+        try:
+            # tenta limpar o item (aqui o service lança ValueError se order_item_id for inválido)
+            item_clean = limpar_um_item(item_raw)
+            itens_limpos.append(item_clean)
+            
+        except ValueError as e:
+            # Captura a exceção lançada pelo service e descarta o registro.
+            # para ajudar vocês em debugs futuros, adicionei o motivo de descarte no log 
+            logger.warning(f"DESCARTE DE REGISTRO: Item {i+1} falhou na validação de dados críticos. Motivo: {e}")
+            
+        except Exception as e:
+            # captura qualquer outra exceção inesperada 
+            logger.error(f"ERRO INESPERADO: Item {i+1} falhou com erro desconhecido: {e}")
 
-async def get_pedidos_ids() -> Set[str]:
-    return {"order_0001", "order_0002", "order_0003"}
-
-
-async def get_produtos_ids() -> Set[str]:
-    return {"prod_0001", "prod_0002", "prod_0003"}
-
-
-async def get_vendedores_ids() -> Set[str]:
-    return {"seller_0001", "seller_0002", "seller_0003"}
-
-
-@router.post(
-    "/limpar-itens-pedidos",
-    response_model=List[ItensPedidosClean],
-)
-async def limpar_e_validar_itens_pedidos(
-    itens_raw: List[ItensPedidosRaw],
-    pedidos_ids: Set[str] = Depends(get_pedidos_ids),
-    produtos_ids: Set[str] = Depends(get_produtos_ids),
-    vendedores_ids: Set[str] = Depends(get_vendedores_ids),
-):
-    return limpar_itens_pedidos(
-        raw_data=itens_raw,
-        pedidos_ids=pedidos_ids,
-        produtos_ids=produtos_ids,
-        vendedores_ids=vendedores_ids,
-    )
+    # Retorna a lista de itens limpos. 
+    return itens_limpos
