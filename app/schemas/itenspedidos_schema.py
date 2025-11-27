@@ -7,8 +7,8 @@ class ItensPedidosRaw(BaseModel):
     product_id: str | None = None
     seller_id: str | None = None
     shipping_limit_date: str | None = None
-    price: float | None = None
-    freight_value: float| None = None
+    price: float | str | None = None
+    freight_value: float| str | None = None
 
 class ItensPedidosClean(BaseModel):
     order_id: str
