@@ -8,11 +8,6 @@ from app.routers.itenspedidos_routes import router as itenspedidos_router
 from app.routers import pedidos_router
 
 
-from app.fullload.full_load_produtos import full_load_produtos
-from app.fullload.full_load_pedidos import full_load_pedidos
-from app.fullload.full_load_vendedores import full_load_vendedores
-from app.fullload.full_load_itens_pedidos import full_load_itens_pedidos  
-from app.fullload.full_load_carregar import carregar_ids_dimensoes
 
 
 
@@ -24,14 +19,6 @@ app = FastAPI(
 )
 
 
-@app.on_event("startup")
-async def startup_event():
-    print("🚀 FULL LOAD iniciado...")
-    full_load_pedidos()
-    full_load_vendedores()  
-    full_load_produtos()
-    pedidos_ids, produtos_ids, vendedores_ids = carregar_ids_dimensoes()
-    full_load_itens_pedidos(pedidos_ids, produtos_ids, vendedores_ids)
 
 
 
