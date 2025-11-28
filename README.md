@@ -170,13 +170,13 @@ projeto-etl/
 
 **Como Rodar**
 
-1 . Usando Docker
+1 . USANDO DOCKER
 
 - [x] Certifique-se de que o Docker Desktop está em execução.
 
 - [x] Suba os serviços com o Docker Compose:
 
-docker-compose up --build
+> docker-compose up --build
 
 - [x] Acesse a aplicação em seu navegador no endereço:
 
@@ -187,7 +187,7 @@ http://localhost:8000
 http://localhost:8000/docs
 
 
-2. Localmente
+2. LOCALMENTE
 
 - [x] Certifique-se de que esteja no diretório principal.
 
