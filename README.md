@@ -33,95 +33,101 @@ Este projeto foi criado em 2025.2 com a proposta de trazer a frente de engenhari
 </ol>
 </details>
 
-Sobre o Projeto
+### Sobre o Projeto
 
 Este projeto foi desenvolvido para o Processo de Treinamento de Área (PTA) do CITi, com foco em engenharia de dados. Ele inclui uma API construída com FastAPI, utilizando boas práticas de desenvolvimento e uma estrutura modular para facilitar a manutenção e a escalabilidade. O objetivo principal do projeto é construir uma pipeline completa que consiga ser acessada via uma API.
 
 Este projeto implementa uma arquitetura de ETL (Extract, Transform, Load) para dados de e-commerce, utilizando FastAPI para higienização de dados e n8n para orquestração de fluxos, com persistência em planilhas Google.
 
-🛠 Tecnologias Utilizadas
+### 🛠 Tecnologias Utilizadas
 
-Linguagem: Python
+**Linguagem:** Python
 
-API Framework: FastAPI
+**API Framework:** FastAPI
 
-Orquestração: n8n
+**Orquestração:** n8n
 
-Integração: Google Cloud Platform (Google Sheets API)
+**Integração:** Google Cloud Platform (Google Sheets API)
 
-⚙️ Tratamento de Dados (Backend)
+### ⚙️ Tratamento de Dados (Backend)
 
 O núcleo do tratamento de dados reside na API, responsável por garantir a integridade das informações antes do armazenamento. A arquitetura segue o padrão de Schemas (Pydantic) para validação e Services para regras de negócio.
 
-📦 Pedidos
+### 📦 Pedidos
 
-Localização: app/schemas/pedidos_schema.py e app/services/pedidos_service.py
+**Localização:** app/schemas/pedidos_schema.py e app/services/pedidos_service.py
 
-Modelagem:
+**Modelagem:**
 
-PedidosRaw (Entrada): Trata todos os campos como string. Otimizado para leitura de dados brutos (CSV/Planilhas) onde a tipagem não é garantida.
+-> PedidosRaw (Entrada): Trata todos os campos como string. Otimizado para leitura de dados brutos (CSV/Planilhas) onde a tipagem não é garantida.
 
-PedidosClean (Saída): Define tipos estritos (ex: datetime para datas, string para IDs).
+-> PedidosClean (Saída): Define tipos estritos (ex: datetime para datas, string para IDs).
 
-Lógica de Processamento:
+**Lógica de Processamento:**
 
-Sanitização: Remoção de espaços em branco extras (trimming).
+-> Sanitização: Remoção de espaços em branco extras (trimming).
 
-Conversão: Campos de data convertidos de string para datetime.
+-> Conversão: Campos de data convertidos de string para datetime.
 
-Validação: order_purchase_timestamp é obrigatório. Se for nulo/inválido, a linha é ignorada (ValueError). Outros campos com falha recebem None.
+-> Validação: order_purchase_timestamp é obrigatório. Se for nulo/inválido, a linha é ignorada (ValueError). Outros campos com falha recebem None.
 
-🛒 Produtos
+### 🛒 Produtos
 
-Localização: app/schemas/produto_schema.py e app/services/produto_service.py
+**Localização:** app/schemas/produto_schema.py e app/services/produto_service.py
 
-Modelagem:
+**Modelagem:**
 
-ProdutosRaw: Recebe dados em formato misto (string, int, nulos).
+-> ProdutosRaw: Recebe dados em formato misto (string, int, nulos).
 
-ProdutosClean: Restringe os tipos conforme o schema do Data Warehouse.
+-> ProdutosClean: Restringe os tipos conforme o schema do Data Warehouse.
 
-Lógica de Processamento:
+**Lógica de Processamento:**
 
-Categoria (product_category_name): Trim, substituição de espaços por underscore (_) e preenchimento de vazios com "indefinido".
+-> Categoria textual (product_category_name): Trim, substituição de espaços por underscore (_) e preenchimento de vazios com "indefinido".
 
-Dados Numéricos: Conversão inicial para float. Cálculo da mediana de cada coluna numérica para preenchimento de valores nulos (Inputação de dados).
+-> Dados Numéricos: Conversão inicial para float. Cálculo da mediana de cada coluna numérica para preenchimento de valores nulos (Inputação de dados).
 
-Tipagem Final: Conversão de floats para inteiros onde aplicável.
+-> Tipagem Final: Conversão de floats para inteiros onde aplicável.
 
-👥 Vendedores e Itens
+### 👥 Vendedores e Itens
 
 Seguem a estrutura padrão de Schemas (vendedor_schema.py, itenspedidos_schema.py) e Services correspondentes, garantindo a tipagem e limpeza antes da carga.
 
-🔗 API Router
+### 🔗 API Router
 
 O endpoint (app/routers/) atua como controlador central:
 
-Recebe uma lista de objetos Raw.
+1. Recebe uma lista de objetos Raw.
 
-Itera sobre os dados aplicando o Service de tratamento.
+2. Itera sobre os dados aplicando o Service de tratamento.
 
-Filtra registros inválidos.
+3. Filtra registros inválidos.
 
-Retorna apenas a lista de objetos processados com sucesso (Clean).
+4. Retorna apenas a lista de objetos processados com sucesso (Clean).
 
-🔄 Workflows de Automação (n8n & Scripts)
+### 🔄 Workflows de Automação (n8n & Scripts)
 
-Fluxo: Vendedores
+**Fluxo: Vendedores**
 
-Full Load (Carga Inicial): Leitura integral, tratamento via API, conversão final para string e deduplicação de IDs. Criação de nova aba "Limpa" no Sheets.
+-> Full Load (Carga Inicial): Leitura integral, tratamento via API, conversão final para string e deduplicação de IDs. Criação de nova aba "Limpa" no Sheets.
 
-Incremental (Atualização): Acionado via trigger de novas linhas (lê as últimas 5). Utiliza lógica de Upsert: Se ID existe, atualiza; se não, insere.
+-> Incremental (Atualização): Acionado via trigger de novas linhas (lê as últimas 5). Utiliza lógica de Upsert: Se ID existe, atualiza; se não, insere.
 
-Fluxo: Produtos
+**Fluxo: Produtos**
 
-Full Load: Gatilho manual. Leitura integral "quebrada" em grupos de 200 itens para otimização de memória da automação. Escrita na página dedicada do Warehouse.
+-> Full Load: Gatilho manual. Leitura integral "quebrada" em grupos de 200 itens para otimização de memória da automação. Escrita na página dedicada do Warehouse.
 
-Incremental: Acionado a cada 15 minutos. Processa em lotes de 200 itens com tratamento via API (Mock/Produção).
+-> Incremental: Acionado a cada 15 minutos. Processa em lotes de 200 itens com tratamento via API (Mock/Produção).
 
-Fluxos: Itens Pedidos e Pedidos
+**Fluxos: Pedidos**
 
-Ambos possuem estratégias definidas para Full Load e Carga Incremental seguindo os padrões de arquitetura do projeto.
+-> Full Load: Gatilho manual. Leitura integral "quebrada" em grupos de 200 itens para otimização de memória da automação. Escrita na página dedicada do Warehouse.
+
+-> Incremental: Acionado a cada 15 minutos. Processa em lotes de 200 itens com tratamento via API (Mock/Produção).
+
+**Fluxo: Itens Pedidos**
+
+
 
 📂 Estrutura de Pastas
 
@@ -154,12 +160,12 @@ projeto-etl/
 
 - [x] Clone o repositório:
 
-git clone [https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git](https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git)
+> git clone [https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git](https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git)
 
 
 - [x] Entre na pasta do projeto:
 
-cd PTA-engenharia-de-dados
+> cd PTA-engenharia-de-dados
 
 
 **Como Rodar**
@@ -187,20 +193,20 @@ http://localhost:8000/docs
 
 - [x] Instale as dependências:
 
-pip install -r ./requirements.txt
+> pip install -r ./requirements.txt
 
 - [x] Execute o projeto:
 
-uvicorn app.main:app
+> uvicorn app.main:app
 
 - [x] Acesse a aplicação em seu navegador no endereço:
 
-http://localhost:8000
+> http://localhost:8000
 
 
 Para acessar a documentação interativa da API (Swagger UI), vá para:
 
-http://localhost:8000/docs
+> http://localhost:8000/docs
 
 
 Contato
