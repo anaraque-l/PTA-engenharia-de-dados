@@ -1,49 +1,47 @@
 <!-- PROJECT LOGO -->
+
 <br />
 <p align="center">
-  <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados">
-    <img src="https://ci3.googleusercontent.com/mail-sig/AIorK4zWbC3U-G_vTTZE6rUQqJjzL8u7WNZjzhEaYi9z7slJn8vNhgnFVootxjm377GVCdPGY_F64WolHmGJ" alt="Logo" width="180px">
-  </a>
+<a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados">
+<img src="https://ci3.googleusercontent.com/mail-sig/AIorK4zWbC3U-G_vTTZE6rUQqJjzL8u7WNZjzhEaYi9z7slJn8vNhgnFVootxjm377GVCdPGY_F64WolHmGJ" alt="Logo" width="180px">
+</a>
 
-  <h3 align="center">PTA Engenharia de Dados</h3>
+<h3 align="center">PTA Engenharia de Dados</h3>
 
-  <p align="center">
-  Este projeto foi criado em 2025.2 com a proposta de trazer a frente de engenharia de dados para o Processo de Treinamento de Área (PTA) do CITi. Ele foi desenvolvido com base em práticas modernas de engenharia de dados e tem como objetivo capacitar tecnicamente as pessoas aspirantes, alinhando-se às demandas atuais da empresa.
-
-   
-    <br />
-    <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    ·
-    <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados/issues">Request Feature</a>
-  </p>
+<p align="center">
+Este projeto foi criado em 2025.2 com a proposta de trazer a frente de engenharia de dados para o Processo de Treinamento de Área (PTA) do CITi. Ele foi desenvolvido com base em práticas modernas de engenharia de dados e tem como objetivo capacitar tecnicamente as pessoas aspirantes, alinhando-se às demandas atuais da empresa.
+<br />
+<a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados"><strong>Explore the docs »</strong></a>
+<br />
+<br />
+·
+<a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados/issues">Report Bug</a>
+·
+<a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados/issues">Request Feature</a>
+</p>
 </p>
 
 <!-- TABLE OF CONTENTS -->
+
 <details open="open">
-  <summary><h2 style="display: inline-block">Tabela de Conteúdo</h2></summary>
-  <ol>
-    <li><a href="#sobre-o-projeto">Sobre o Projeto</a></li>
-    
-    <li><a href="#como-instalar">Como Instalar</a></li>
-    <li><a href="#como-rodar">Como Rodar</a></li>
-    <li><a href="#contato">Contato</a></li>
-  </ol>
+<summary><h2 style="display: inline-block">Tabela de Conteúdo</h2></summary>
+<ol>
+<li><a href="#sobre-o-projeto">Sobre o Projeto</a></li>
+<li><a href="#como-instalar">Como Instalar</a></li>
+<li><a href="#como-rodar">Como Rodar</a></li>
+<li><a href="#contato">Contato</a></li>
+</ol>
 </details>
 
-<br/>
-
-## Sobre o Projeto
-<br/>
+Sobre o Projeto
 
 Este projeto foi desenvolvido para o Processo de Treinamento de Área (PTA) do CITi, com foco em engenharia de dados. Ele inclui uma API construída com FastAPI, utilizando boas práticas de desenvolvimento e uma estrutura modular para facilitar a manutenção e a escalabilidade. O objetivo principal do projeto é construir uma pipeline completa que consiga ser acessada via uma API.
 
 Este projeto implementa uma arquitetura de ETL (Extract, Transform, Load) para dados de e-commerce, utilizando FastAPI para higienização de dados e n8n para orquestração de fluxos, com persistência em planilhas Google.
 
-🛠 Tecnologias Utilizadas Linguagem: Python
+🛠 Tecnologias Utilizadas
+
+Linguagem: Python
 
 API Framework: FastAPI
 
@@ -51,89 +49,82 @@ Orquestração: n8n
 
 Integração: Google Cloud Platform (Google Sheets API)
 
-Tratamento de Dados (Backend) O núcleo do tratamento de dados reside na API, responsável por garantir a integridade das informações antes do armazenamento.
-Pedidos
-Modelagem de Classes (Schemas) - Padronização de Entradas e Saídas
-Localização: app/schemas/pedidos_schema.py
+⚙️ Tratamento de Dados (Backend)
+
+O núcleo do tratamento de dados reside na API, responsável por garantir a integridade das informações antes do armazenamento. A arquitetura segue o padrão de Schemas (Pydantic) para validação e Services para regras de negócio.
+
+📦 Pedidos
+
+Localização: app/schemas/pedidos_schema.py e app/services/pedidos_service.py
+
+Modelagem:
 
 PedidosRaw (Entrada): Trata todos os campos como string. Otimizado para leitura de dados brutos (CSV/Planilhas) onde a tipagem não é garantida.
 
 PedidosClean (Saída): Define tipos estritos (ex: datetime para datas, string para IDs).
 
-Lógica de Processamento
-Localização: app/services/pedidos_service.py
+Lógica de Processamento:
 
-A função de tratamento processa a tabela linha a linha, aplicando as seguintes regras:
+Sanitização: Remoção de espaços em branco extras (trimming).
 
-Sanitização de Texto: Remoção de espaços em branco extras (trimming) em campos textuais.
+Conversão: Campos de data convertidos de string para datetime.
 
-Conversão de Tipos: Campos de data convertidos de string para datetime. Validação do campo obrigatório order_purchase_timestamp.
+Validação: order_purchase_timestamp é obrigatório. Se for nulo/inválido, a linha é ignorada (ValueError). Outros campos com falha recebem None.
 
-Tratamento de Erros: Se order_purchase_timestamp for nulo/inválido: Lança ValueError e a linha é ignorada (bloco try/except). Outros campos com falha de conversão: Recebem valor None (nulo), mantendo o objeto válido.
+🛒 Produtos
 
-Vendedores
-Modelagem de Classes (Schemas) - Padronização de Entradas e Saídas
-Localização: app/schemas/vendedor_schema.py
+Localização: app/schemas/produto_schema.py e app/services/produto_service.py
 
-Lógica de Processamento
-Localização: app/services/vendedor_service.py
+Modelagem:
 
-Produtos
-Modelagem de Classes (Schemas) - Padronização de Entradas e Saídas
-Localização: app/schemas/produto_schema.py
+ProdutosRaw: Recebe dados em formato misto (string, int, nulos).
 
-ProdutosRaw (Entrada): Recebe dados no formato desejável (que pode ser string, int ou outro) ou nulos (None). ProdutosClean (Saída): Restringe os tipos de dados, de acordo com o desejável.
+ProdutosClean: Restringe os tipos conforme o schema do Data Warehouse.
 
-Lógica de Processamento
-Localização: app/services/produto_service.py
+Lógica de Processamento:
 
-A função de tratamento processa a tabela linha a linha, aplicando as seguintes regras:
+Categoria (product_category_name): Trim, substituição de espaços por underscore (_) e preenchimento de vazios com "indefinido".
 
-Sanitização de texto (coluna 'product_category_name'): remoção de espaços em branco extras, substituição de espaços em branco entre termos por underscore (_) e preenchimento dos espaços em branco por "indefinido".
+Dados Numéricos: Conversão inicial para float. Cálculo da mediana de cada coluna numérica para preenchimento de valores nulos (Inputação de dados).
 
-Sanitização dos dados numéricos: conversão para float de todas as colunas que dizem respeito a dados numéricos; cálculo da mediana de cada uma delas e preenchimento dos espaços em branco com a respectiva mediana.
+Tipagem Final: Conversão de floats para inteiros onde aplicável.
 
-Conversão de tipagem: transformação dos valores numéricos que devem ser tratados como inteiros, pois, pelo passo anterior, eles eram float.
+👥 Vendedores e Itens
 
-Por fim, são criadas novas colunas, com os dados corrigidos.
+Seguem a estrutura padrão de Schemas (vendedor_schema.py, itenspedidos_schema.py) e Services correspondentes, garantindo a tipagem e limpeza antes da carga.
 
-Itens pedidos
-Modelagem de Classes (Schemas) - Padronização de Entradas e Saídas
-Localização: app/schemas/itenspedidos_schema.py
+🔗 API Router
 
-Lógica de Processamento
-Localização: app/schemas/itenspedidos_service.py
+O endpoint (app/routers/) atua como controlador central:
 
-API Router (comum a todas as categorias)
-Localização: app/routers/
+Recebe uma lista de objetos Raw.
 
-O endpoint recebe uma lista de objetos PedidosRaw e retorna uma lista de PedidosClean. Itera sobre os dados recebidos. Aplica a função de tratamento. Filtra registros inválidos (erros de campos obrigatórios). Retorna apenas a lista de objetos processados com sucesso.
+Itera sobre os dados aplicando o Service de tratamento.
 
-Workflows de Automação (n8n & Scripts)
+Filtra registros inválidos.
+
+Retorna apenas a lista de objetos processados com sucesso (Clean).
+
+🔄 Workflows de Automação (n8n & Scripts)
+
 Fluxo: Vendedores
-Estratégia "Full Load" (Carga Inicial):
-Leitura integral da planilha bruta. Tratamento via API (Mock/Produção). Conversão final de todos os campos para string (padronização de persistência). Deduplicação: Remoção de IDs repetidos. Escrita: Google Sheets: Criação de nova aba/planilha "Limpa". Notificação via Email após conclusão.
 
-Estratégia Incremental (Atualização):
-Acionado via trigger de novas linhas na planilha, carregando apenas as últimas 5 linhas (margem de segurança). Padronização para string. Lógica de Upsert (Update/Insert): Verifica se o ID já existe no destino. Se existir: Atualiza o registro. Se não existir: Insere novo registro. Notificação via Email.
+Full Load (Carga Inicial): Leitura integral, tratamento via API, conversão final para string e deduplicação de IDs. Criação de nova aba "Limpa" no Sheets.
 
-Fluxo: Produtos (Products)
-Estratégia "Full Load" (Carga Inicial):
-Gatilho manual (clique em "executar workflow"). Leitura integral da planilha bruta. "Quebra" em grupos de 200, para facilitar à automação realizar as tarefas sem comprometer sua limitada memória. Tratamento via API (Mock/Produção). Escrita em página do Warehouse dedicada à categoria em qeustão. Notificação via Email.
+Incremental (Atualização): Acionado via trigger de novas linhas (lê as últimas 5). Utiliza lógica de Upsert: Se ID existe, atualiza; se não, insere.
 
-Estratégia Incremental (Atualização):
-Acionado a cada 15 minutos. "Quebra" em grupos de 200, para facilitar à automação realizar as tarefas sem comprometer sua limitada memória. Tratamento via API (Mock/Produção). Escrita em página do Warehouse dedicada à categoria em qeustão. Notificação via Email.
+Fluxo: Produtos
 
-Fluxo: Itens Pedidos
-Estratégia "Full Load" (Carga Inicial):
-Estratégia Incremental (Atualização):
-Fluxo: Pedidos
-Estratégia "Full Load" (Carga Inicial):
-Estratégia Incremental (Atualização):
+Full Load: Gatilho manual. Leitura integral "quebrada" em grupos de 200 itens para otimização de memória da automação. Escrita na página dedicada do Warehouse.
 
-### Estrutura de Pastas
+Incremental: Acionado a cada 15 minutos. Processa em lotes de 200 itens com tratamento via API (Mock/Produção).
 
-```text
+Fluxos: Itens Pedidos e Pedidos
+
+Ambos possuem estratégias definidas para Full Load e Carga Incremental seguindo os padrões de arquitetura do projeto.
+
+📂 Estrutura de Pastas
+
 projeto-etl/
 │
 ├── app/
@@ -157,86 +148,68 @@ projeto-etl/
 ├── requirements.txt             # Dependências do projeto
 └── README.md                    # Documentação
 
-<br/>
 
-## Como Instalar
-<br/>
+Como Instalar
 
-1. Certifique-se de que o **Python** e o **Docker Desktop** estão instalados em sua máquina.
+Certifique-se de que o Python e o Docker Desktop estão instalados em sua máquina.
 
-2. Clone o repositório:
+Clone o repositório:
 
-   ```sh
-   git clone https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git
-   ```
-
-3. Entre na pasta do projeto:
-
-   ```sh
-   cd PTA-engenharia-de-dados
-   ```
-
-<br/>
-
-## Como Rodar
-
-### Usando Docker
-<br/>
-
-1. Certifique-se de que o Docker Desktop está em execução.
-
-2. Suba os serviços com o Docker Compose:
-
-   ```sh
-   docker-compose up --build
-   ```
-
-3. Acesse a aplicação em seu navegador no endereço:
-
-   ```
-   http://localhost:8000
-   ```
-
-4. Para acessar a documentação interativa da API (Swagger UI), vá para:
-
-   ```
-   http://localhost:8000/docs
-   ```
-
-<br/>
-
-### Localmente
-<br/>
-
-1. Certifique-se de que esteja no diretório principal
-
-2. Instale as dependências: 
-    ```
-    pip install -r ./requirements.txt
-    ```
-
-3. Execute o projeto: 
-    ```
-    uvicorn app.main:app
-    ```
-
-4. Acesse a aplicação em seu navegador no endereço:
-
-   ```
-   http://localhost:8000
-   ```
-
-5. Para acessar a documentação interativa da API (Swagger UI), vá para:
-
-   ```
-   http://localhost:8000/docs
-   ```
-
-<br/>
+git clone [https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git](https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git)
 
 
-## Contato
-<br/>
+Entre na pasta do projeto:
 
-- [CITi UFPE](https://github.com/CITi-UFPE) - contato@citi.org.br
-- [João Pedro Bezerra](https://github.com/jpbezera), Líder de Dados em 2025.2 - jpbmtl@cin.ufpe.br
+cd PTA-engenharia-de-dados
+
+
+Como Rodar
+
+Usando Docker
+
+Certifique-se de que o Docker Desktop está em execução.
+
+Suba os serviços com o Docker Compose:
+
+docker-compose up --build
+
+
+Acesse a aplicação em seu navegador no endereço:
+
+http://localhost:8000
+
+
+Para acessar a documentação interativa da API (Swagger UI), vá para:
+
+http://localhost:8000/docs
+
+
+Localmente
+
+Certifique-se de que esteja no diretório principal.
+
+Instale as dependências:
+
+pip install -r ./requirements.txt
+
+
+Execute o projeto:
+
+uvicorn app.main:app
+
+
+Acesse a aplicação em seu navegador no endereço:
+
+http://localhost:8000
+
+
+Para acessar a documentação interativa da API (Swagger UI), vá para:
+
+http://localhost:8000/docs
+
+
+Contato
+
+CITi UFPE - contato@citi.org.br
+
+João Pedro Bezerra, Líder de Dados em 2025.2 - jpbmtl@cin.ufpe.br
