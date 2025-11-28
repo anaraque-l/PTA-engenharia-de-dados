@@ -1,73 +1,171 @@
-from datetime import datetime
+import logging
 import pandas as pd
-from typing import Optional # Importação necessária para tipagem de Optional
-from app.schemas.itenspedidos_schema import ItensPedidosRaw, ItensPedidosClean
+from datetime import datetime
+from typing import Optional, List, Set, Dict
 
-# Funções auxiliares para parsing
-# tratamento de dados com pandas para lidar com valores nulos e formatos incorretos. ( replicar lógica semelhante para pedidos)
+from app.schemas.itenspedidos_schema import (
+    ItensPedidosRaw,
+    ItensPedidosClean
+)
+
+logger = logging.getLogger(__name__)
+
+# ===========================================================
+#  VARIÁVEIS GLOBAIS PARA AS MEDIANAS
+#  (usadas no FULL LOAD E NO TRATAR-UMA-LINHA)
+# ===========================================================
+
+MEDIANA_PRICE: float | None = None
+MEDIANA_FREIGHT: float | None = None
+
+
+# ===========================================================
+#  AUXILIARES
+# ===========================================================
+
 def parse_date(valor: Optional[str]) -> Optional[datetime]:
-    
-    if not valor or pd.isna(valor) or valor.strip() == '1970-01-01 00:00:00':
+    if not valor or str(valor).strip() == "":
         return None
-    
-    
+
     dt = pd.to_datetime(valor, errors="coerce")
-    
-    
-    return dt.to_pydatetime() if pd.notna(dt) else None
+
+    if pd.isna(dt):
+        return None
+
+    if hasattr(dt, "tzinfo") and dt.tzinfo is not None:
+        dt = dt.tz_localize(None)
+
+    return dt.to_pydatetime()
+
 
 def parse_numeric(valor: Optional[str]) -> Optional[float]:
-    
-    if not valor:
+    if valor is None:
         return None
-        
-    
-    numeric_value = pd.to_numeric(valor, errors='coerce')
-    
-    if pd.isna(numeric_value):
+
+    valor = str(valor).strip()
+    if valor == "":
         return None
-        
-    return float(numeric_value)
 
-def limpar_um_item(raw: ItensPedidosRaw) -> ItensPedidosClean:
+    num = pd.to_numeric(valor, errors="coerce")
+    return float(num) if pd.notna(num) else None
 
-    # order_id (mantém como veio)
-    order_id = raw.order_id
 
-    # order_item_id (converte para int)
-    #  adicionando tratamento para nulos/inválidos, quebrando se for crítico (para descarte no router)
+# ===========================================================
+#  🔥 LIMPAR SOMENTE UM ITEM (USA MEDIANAS GLOBAIS)
+# ===========================================================
+
+def limpar_um_item(
+    raw: ItensPedidosRaw,
+    pedidos_ids: Set[str],
+    produtos_ids: Set[str],
+    vendedores_ids: Set[str],
+    price_mediana: float | None = None,
+    freight_mediana: float | None = None,
+) -> ItensPedidosClean:
+    """
+    - Aplica integridade referencial (order_id, product_id, seller_id)
+    - Usa medianas:
+        - se vierem como parâmetro → prioriza
+        - senão → usa MEDIANA_* global calculada no FULL LOAD
+    """
+
+    # ---------- 1) INTEGRIDADE REFERENCIAL ----------
+    if raw.order_id not in pedidos_ids:
+        raise ValueError(f"ORFAO: order_id inválido: {raw.order_id}")
+
+    if raw.product_id not in produtos_ids:
+        raise ValueError(f"ORFAO: product_id inválido: {raw.product_id}")
+
+    if raw.seller_id not in vendedores_ids:
+        raise ValueError(f"ORFAO: seller_id inválido: {raw.seller_id}")
+
+    # ---------- 2) VALIDAÇÃO CRÍTICA ----------
     try:
-        order_item_id = int(raw.order_item_id) if raw.order_item_id else None
-        if order_item_id is None:
-            # Assumindo que order_item_id é obrigatório para identificação
-            raise ValueError("order_item_id ausente")
-    except ValueError:
-        # para lançar  erro se for não numérico/inválido para ser pego e descartado pelo router
-        raise ValueError(f"order_item_id inválido ou ausente: {raw.order_item_id}")
+        order_item_id = int(raw.order_item_id)
+    except Exception:
+        raise ValueError(f"order_item_id inválido: {raw.order_item_id}")
 
+    # ---------- 3) MEDIANAS ----------
+    global MEDIANA_PRICE, MEDIANA_FREIGHT
 
-    # product_id, seller_id (mantém como veio)
-    product_id = raw.product_id
-    seller_id = raw.seller_id
+    # se não vier por parâmetro, usa a global
+    if price_mediana is None:
+        price_mediana = MEDIANA_PRICE if MEDIANA_PRICE is not None else 0.0
 
-    # price → float
-    #  Usando parse_numeric para tratar nulos e sujeira
+    if freight_mediana is None:
+        freight_mediana = MEDIANA_FREIGHT if MEDIANA_FREIGHT is not None else 0.0
+
+    # price
     price = parse_numeric(raw.price)
+    if price is None:
+        price = price_mediana
 
-    # freight_value → float
-    # Usando parse_numeric para tratar nulos e sujeira
+    # freight_value
     freight_value = parse_numeric(raw.freight_value)
+    if freight_value is None:
+        freight_value = freight_mediana
 
-    # shipping_limit_date → datetime
-    # correção Usando parse_date para tratar nulos e formatos inválidos
+    # ---------- 4) DATA ----------
     shipping_limit_date = parse_date(raw.shipping_limit_date)
 
+    # ---------- 5) RETORNO ----------
     return ItensPedidosClean(
-        order_id=order_id,
+        order_id=raw.order_id,
         order_item_id=order_item_id,
-        product_id=product_id,
-        seller_id=seller_id,
+        product_id=raw.product_id,
+        seller_id=raw.seller_id,
         shipping_limit_date=shipping_limit_date,
         price=price,
         freight_value=freight_value
     )
+
+
+# ===========================================================
+#  🔥 LIMPAR LISTA (FULL LOAD) — CALCULA E SALVA MEDIANAS
+# ===========================================================
+
+def limpar_itens(
+    lista_raw: List[Dict],
+    pedidos_ids: Set[str],
+    produtos_ids: Set[str],
+    vendedores_ids: Set[str],
+) -> List[Dict]:
+
+    global MEDIANA_PRICE, MEDIANA_FREIGHT
+
+    df = pd.DataFrame(lista_raw)
+
+    # calcula medianas a partir do dataset completo
+    MEDIANA_PRICE = pd.to_numeric(df["price"], errors="coerce").median()
+    MEDIANA_FREIGHT = pd.to_numeric(df["freight_value"], errors="coerce").median()
+
+    if pd.isna(MEDIANA_PRICE):
+        MEDIANA_PRICE = 0.0
+    if pd.isna(MEDIANA_FREIGHT):
+        MEDIANA_FREIGHT = 0.0
+
+    itens_limpos = []
+
+    for idx, row in enumerate(lista_raw):
+        try:
+            modelo_raw = ItensPedidosRaw(**row)
+
+            modelo_clean = limpar_um_item(
+                modelo_raw,
+                pedidos_ids=pedidos_ids,
+                produtos_ids=produtos_ids,
+                vendedores_ids=vendedores_ids,
+                # aqui eu passo explicitamente, mas também já estão salvas nas globais
+                price_mediana=MEDIANA_PRICE,
+                freight_mediana=MEDIANA_FREIGHT,
+            )
+
+            itens_limpos.append(modelo_clean.model_dump())
+
+        except ValueError as e:
+            logger.warning(f"[DESCARTADO] Linha {idx+1}: {e}")
+
+        except Exception as e:
+            logger.error(f"[ERRO DESCONHECIDO] Linha {idx+1}: {e}")
+
+    return itens_limpos
