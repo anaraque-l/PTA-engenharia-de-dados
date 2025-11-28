@@ -95,42 +95,59 @@ Retorna apenas a lista de objetos processados com sucesso.
 
 
 2. Workflows de Automação (n8n & Scripts)
-Fluxo: Vendedores (Sellers)
 
-Este fluxo gerencia a tabela de vendedores, sincronizando Google Sheets e Supabase.
 
-Estratégia "Full Load" (Carga Inicial)
+#### Fluxo: Vendedores 
+
+##### Estratégia "Full Load" (Carga Inicial):
 
 Leitura integral da planilha bruta.
-
 Tratamento via API (Mock/Produção).
-
 Conversão final de todos os campos para string (padronização de persistência).
-
 Deduplicação: Remoção de IDs repetidos.
-
 Escrita:
-
 Google Sheets: Criação de nova aba/planilha "Limpa".
-
-Supabase: Inserção em batches (lotes) de 100 linhas.
-
 Notificação via Email após conclusão.
 
-Estratégia Incremental (Atualização)
+##### Estratégia Incremental (Atualização):
 
-Acionado via trigger de novas linhas na planilha:
-
-Carrega apenas as últimas 5 linhas (margem de segurança).
-
+Acionado via trigger de novas linhas na planilha, carregando apenas as últimas 5 linhas (margem de segurança).
 Padronização para string.
-
 Lógica de Upsert (Update/Insert):
-
 Verifica se o ID já existe no destino.
-
 Se existir: Atualiza o registro.
-
 Se não existir: Insere novo registro.
-
 Notificação via Email.
+
+### Fluxo: Produtos (Products)
+
+##### Estratégia "Full Load" (Carga Inicial):
+
+Gatilho manual (clique em "executar workflow").
+Leitura integral da planilha bruta.
+"Quebra" em grupos de 200, para facilitar à automação realizar as tarefas sem comprometer sua limitada memória.
+Tratamento via API (Mock/Produção).
+Escrita em página do Warehouse dedicada à categoria em qeustão.
+Notificação via Email.
+
+##### Estratégia Incremental (Atualização):
+
+Acionado a cada 15 minutos.
+"Quebra" em grupos de 200, para facilitar à automação realizar as tarefas sem comprometer sua limitada memória.
+Tratamento via API (Mock/Produção).
+Escrita em página do Warehouse dedicada à categoria em qeustão.
+Notificação via Email.
+
+### Fluxo: Itens Pedidos 
+
+##### Estratégia "Full Load" (Carga Inicial):
+
+##### Estratégia Incremental (Atualização):
+
+
+
+### Fluxo: Pedidos
+
+##### Estratégia "Full Load" (Carga Inicial):
+
+##### Estratégia Incremental (Atualização):
