@@ -64,7 +64,7 @@ def chunk_list(lst, size):
 # Enviar um chunk para a API com retry
 # -------------------------
 
-def processar_chunk(chunk):
+def processar_chunk(chunk, pedidos_ids, produtos_ids, vendedores_ids):
 
     # Filtrar linhas vazias
     # Remove linhas totalmente vazias ou com todos valores None/NaN/""
@@ -79,7 +79,7 @@ def processar_chunk(chunk):
         return []
     
     try:
-        resp = limpar_itens(chunk)
+        resp = limpar_itens(chunk, pedidos_ids, produtos_ids, vendedores_ids)
 
        
         return resp
@@ -95,7 +95,7 @@ def processar_chunk(chunk):
 # Função geral
 # -------------------------
 
-def tratar_itens_em_chunks(df: pd.DataFrame, chunk_size=5000):
+def tratar_itens_em_chunks(df: pd.DataFrame, pedidos_ids, produtos_ids, vendedores_ids,chunk_size=5000):
 
     print(f"Iniciando tratamento via API ({len(df)} linhas)...")
     payload = df.to_dict(orient="records")
@@ -106,7 +106,7 @@ def tratar_itens_em_chunks(df: pd.DataFrame, chunk_size=5000):
     for i, chunk in enumerate(chunk_list(payload, chunk_size), start=1):
         print(f"Enviando chunk {i}/{total_chunks} ({len(chunk)} registros)...")
 
-        dados_tratados = processar_chunk(chunk)
+        dados_tratados = processar_chunk(chunk, pedidos_ids, produtos_ids, vendedores_ids)
 
         print(f"   API retornou {len(dados_tratados)} itens limpos\n")
 
@@ -116,7 +116,7 @@ def tratar_itens_em_chunks(df: pd.DataFrame, chunk_size=5000):
 
     return pd.DataFrame(resultados)
 
-def full_load_itens_pedidos():
+def full_load_itens_pedidos(pedidos_ids, produtos_ids, vendedores_ids):
     
     client = autenticar()
 
@@ -124,7 +124,7 @@ def full_load_itens_pedidos():
     df_origem = ler_origem(client)
 
     print("Enviando itens para a API...")
-    df_tratado = tratar_itens_em_chunks(df_origem)
+    df_tratado = tratar_itens_em_chunks(df_origem, pedidos_ids, produtos_ids, vendedores_ids)
 
     print("Escrevendo itens tratados na planilha destino...")
     escrever_destino(client, df_tratado)
