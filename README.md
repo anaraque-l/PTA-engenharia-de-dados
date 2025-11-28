@@ -125,80 +125,75 @@ Ambos possuem estratégias definidas para Full Load e Carga Incremental seguindo
 
 📂 Estrutura de Pastas
 
-projeto-etl/
-│
-├── app/
-│   ├── main.py                  # Ponto de entrada da aplicação (Entrypoint)
-│   │
-│   ├── routers/                 # Endpoints da API (Controladores)
-│   │   ├── pedidos_router.py    # Recebe requisições de Pedidos
-│   │   ├── produtos_router.py   # Recebe requisições de Produtos
-│   │   └── ...
-│   │
-│   ├── services/                # Regras de Negócio e Limpeza (Lógica ETL)
-│   │   ├── pedidos_service.py   # Sanitização e conversão de Pedidos
-│   │   ├── produtos_service.py  # Tratamento de nulos e medianas de Produtos
-│   │   └── ...
-│   │
-│   └── schemas/                 # Modelagem de Dados (Pydantic)
-│       ├── pedidos_schema.py    # Define PedidosRaw e PedidosClean
-│       ├── produtos_schema.py   # Define ProdutosRaw e ProdutosClean
-│       └── ...
-│
-├── requirements.txt             # Dependências do projeto
-└── README.md                    # Documentação
+projeto-etl/  
+|  
+|── app/  
+│   ├── main.py                  # Ponto de entrada da aplicação (Entrypoint)  
+│   │  
+│   ├── routers/               # Endpoints da API (Controladores)  
+│   │   ├── pedidos_router.py    # Recebe requisições de Pedidos  
+│   │   ├── produtos_router.py   # Recebe requisições de Produtos  
+│   │   └── ...  
+│   │  
+│   ├── services/                # Regras de Negócio e Limpeza (Lógica ETL)  
+│   │   ├── pedidos_service.py   # Sanitização e conversão de Pedidos  
+│   │   ├── produtos_service.py  # Tratamento de nulos e medianas de Produtos  
+│   │   └── ...  
+│   │  
+│   └── schemas/                 # Modelagem de Dados (Pydantic)  
+│       ├── pedidos_schema.py    # Define PedidosRaw e PedidosClean  
+│       ├── produtos_schema.py   # Define ProdutosRaw e ProdutosClean  
+│       └── ...  
+│  
+├── requirements.txt             # Dependências do projeto  
+└── README.md                    # Documentação  
 
+**Como Instalar**
 
-Como Instalar
+- [ ] Certifique-se de que o Python e o Docker Desktop estão instalados em sua máquina.
 
-Certifique-se de que o Python e o Docker Desktop estão instalados em sua máquina.
-
-Clone o repositório:
+- [ ] Clone o repositório:
 
 git clone [https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git](https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git)
 
 
-Entre na pasta do projeto:
+- [ ] Entre na pasta do projeto:
 
-cd PTA-engenharia-de-dados
+- [ ] cd PTA-engenharia-de-dados
 
 
-Como Rodar
+**Como Rodar**
 
-Usando Docker
+1 . Usando Docker
 
-Certifique-se de que o Docker Desktop está em execução.
+- [ ] Certifique-se de que o Docker Desktop está em execução.
 
-Suba os serviços com o Docker Compose:
+- [ ] Suba os serviços com o Docker Compose:
 
 docker-compose up --build
 
-
-Acesse a aplicação em seu navegador no endereço:
+- [ ] Acesse a aplicação em seu navegador no endereço:
 
 http://localhost:8000
 
-
-Para acessar a documentação interativa da API (Swagger UI), vá para:
+- [ ] Para acessar a documentação interativa da API (Swagger UI), vá para:
 
 http://localhost:8000/docs
 
 
-Localmente
+2. Localmente
 
-Certifique-se de que esteja no diretório principal.
+- [ ] Certifique-se de que esteja no diretório principal.
 
-Instale as dependências:
+- [ ] Instale as dependências:
 
 pip install -r ./requirements.txt
 
-
-Execute o projeto:
+- [ ] Execute o projeto:
 
 uvicorn app.main:app
 
-
-Acesse a aplicação em seu navegador no endereço:
+- [ ] Acesse a aplicação em seu navegador no endereço:
 
 http://localhost:8000
 
