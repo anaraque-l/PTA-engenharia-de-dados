@@ -51,7 +51,7 @@ async def limpar_pedidos(dados: List[PedidosRaw]) -> List[PedidosClean]:
 # 2) TRATAR UMA LINHA — /tratar-uma-linha
 # ------------------------------------------------------------------------------
 @router.post("/tratar-uma-linha")
-def tratar_uma_linha(dados: PedidosRaw):
+def tratar_uma_linha(dados: list[PedidosRaw]):
     
     try:
         tratado = tratar_pedido(dados)
