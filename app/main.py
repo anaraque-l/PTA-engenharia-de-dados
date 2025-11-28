@@ -6,6 +6,8 @@ from app.routers.vendedor_routes import router as vendedor_router
 from app.routers.itenspedidos_routes import router as itenspedidos_router
 from app.routers.incremental_itenspedidos_router import router as incremental_itenspedidos_router
 from app.routers import pedidos_router
+from app.fullload.full_load_produtos import tratar_ultima_linha_produtos
+from app.fullload.full_load_produtos import full_load_produtos
 
 
 app = FastAPI(
@@ -14,12 +16,19 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.on_event("startup")
+async def startup_event():
+    print("🚀 FULL LOAD de produtos iniciado...")
+    full_load_produtos()
+
 # REGISTRO DOS ROUTERS
 app.include_router(produto_router, prefix="/produto", tags=["Produtos"])
 app.include_router(vendedor_router, prefix="/vendedores", tags=["Vendedores"])
 app.include_router(itenspedidos_router, prefix="/itens-pedidos", tags=["ItensPedidos"])
 app.include_router(incremental_itenspedidos_router, prefix="/itens-pedidos-incremental", tags=["ItensPedidos"])
 app.include_router(pedidos_router.router, prefix="/pedidos", tags=["Pedidos"])
+
+
 # ROTAS FIXAS
 @app.get("/", description="Mensagem de boas-vindas da API.")
 async def read_root():
