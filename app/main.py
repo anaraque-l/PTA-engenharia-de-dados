@@ -6,8 +6,10 @@ from app.routers.vendedor_routes import router as vendedor_router
 from app.routers.itenspedidos_routes import router as itenspedidos_router
 from app.routers.incremental_itenspedidos_router import router as incremental_itenspedidos_router
 from app.routers import pedidos_router
-from app.fullload.full_load_produtos import tratar_ultima_linha_produtos
+
 from app.fullload.full_load_produtos import full_load_produtos
+from app.fullload.full_load_pedidos import full_load_pedidos, tratar_ultima_linha_pedidos
+
 
 
 app = FastAPI(
@@ -18,8 +20,10 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-    print("🚀 FULL LOAD de produtos iniciado...")
+    print("🚀 FULL LOAD iniciado...")
     full_load_produtos()
+    full_load_pedidos()
+
 
 # REGISTRO DOS ROUTERS
 app.include_router(produto_router, prefix="/produto", tags=["Produtos"])
