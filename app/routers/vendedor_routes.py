@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/limpar-vendedores", response_model=List[VendedorClean])
-def limpar_vendedores(dados: List[VendedorRaw]):
+async def limpar_vendedores(dados: List[VendedorRaw]):
 
 
     lista = []
@@ -27,7 +27,7 @@ def limpar_vendedores(dados: List[VendedorRaw]):
 
 
 @router.post("/tratar-uma-linha")
-def tratar_uma_linha(dados: list[VendedorRaw]):
+async def tratar_uma_linha(dados: list[VendedorRaw]):
 
 
     vendedor = limpar_um_vendedor(dados)

@@ -14,7 +14,7 @@ async def tratar_pedidos(dados: List[ProdutoRaw]) -> List[ProdutoClean]:
 
 
 @router.post("/tratar-uma-linha", response_model=ProdutoClean)
-def tratar_uma_linha(dado: list[ProdutoRaw]):
+async def tratar_uma_linha(dado: list[ProdutoRaw]):
     try:
         limpo = tratar_produto_incremental(dado.dict())
         return limpo                         # dict com todas as colunas limpas

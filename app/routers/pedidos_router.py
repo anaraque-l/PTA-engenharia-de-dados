@@ -7,32 +7,7 @@ from app.services.pedidos_service import tratar_pedido, tratar_pedidos
 router = APIRouter()
 
 
-@router.post("/limpar-pedidos", response_model=List[PedidosClean])
-async def tratar_pedidos(dados: List[PedidosRaw]) -> List[PedidosClean]:
-   
-    lista_pedidos = []
 
-
-    for pedido in dados:
-        try:
-            pedido_tratado = tratar_pedido(pedido)
-        except ValueError:
-            continue
-
-
-        lista_pedidos.append(pedido_tratado)
-
-
-    return lista_pedidos
-
-
-from fastapi import APIRouter
-from typing import List
-from app.schemas.pedidos_schema import PedidosClean, PedidosRaw
-from app.services.pedidos_service import tratar_pedido
-
-
-router = APIRouter()
 
 
 
@@ -64,7 +39,7 @@ async def limpar_pedidos(dados: List[PedidosRaw]) -> List[PedidosClean]:
 # 2) TRATAR UMA LINHA — /tratar-uma-linha
 # ------------------------------------------------------------------------------
 @router.post("/tratar-uma-linha")
-def tratar_uma_linha(dados: list[PedidosRaw]):
+async def tratar_uma_linha(dados: list[PedidosRaw]):
    
     try:
         tratado = tratar_pedido(dados)
