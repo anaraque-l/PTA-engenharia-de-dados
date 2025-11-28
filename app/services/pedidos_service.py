@@ -16,6 +16,7 @@ def parse_date(valor: Optional[str]) -> Optional[datetime]:
     return dt.to_pydatetime()
 
 
+
 def tratar_pedido(dados: PedidosRaw) -> PedidosClean:
     # Limpeza inicial
     order_id = (dados.order_id or "").strip()

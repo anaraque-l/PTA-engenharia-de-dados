@@ -86,6 +86,8 @@ def full_load_produtos():
 
 # ------------------------------------------------------
 # INCREMENTAL — ÚLTIMA LINHA
+
+
 # ------------------------------------------------------
 
 def tratar_ultima_linha_produtos():

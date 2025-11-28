@@ -28,6 +28,7 @@ def tratar_produtos(dados) -> pd.DataFrame:
         .replace("", "indefinido")
         .fillna("indefinido")
     )
+    
 
     # converte colunas numéricas
     colunas = [

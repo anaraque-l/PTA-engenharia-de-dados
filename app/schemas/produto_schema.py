@@ -21,6 +21,7 @@ class ProdutoClean(BaseModel):
     len_descr_limpa: int
     qtd_fotos_limpa: int
     peso_limpo: float
+    
     comprimento_limpo: float
     altura_limpa: int
     largura_limpa: int
