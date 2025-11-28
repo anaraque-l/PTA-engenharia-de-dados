@@ -66,8 +66,11 @@ A função de tratamento processa a tabela linha a linha, aplicando as seguintes
 
 Sanitização de texto (coluna 'product_category_name'): remoção de espaços em branco extras, substituição de espaços em branco entre termos por underscore (_) e preenchimento dos espaços em branco por "indefinido".
 
+Sanitização dos dados numéricos: conversão para float de todas as colunas que dizem respeito a dados numéricos; cálculo da mediana de cada uma delas e preenchimento dos espaços em branco com a respectiva mediana.
 
+Conversão de tipagem: transformação dos valores numéricos que devem ser tratados como inteiros, pois, pelo passo anterior, eles eram float.
 
+Por fim, são criadas novas colunas, com os dados corrigidos.
 
 ### Itens pedidos 
 
