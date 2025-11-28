@@ -150,50 +150,50 @@ projeto-etl/
 
 **Como Instalar**
 
-- [ ] Certifique-se de que o Python e o Docker Desktop estão instalados em sua máquina.
+- [x] Certifique-se de que o Python e o Docker Desktop estão instalados em sua máquina.
 
-- [ ] Clone o repositório:
+- [x] Clone o repositório:
 
 git clone [https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git](https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git)
 
 
-- [ ] Entre na pasta do projeto:
+- [x] Entre na pasta do projeto:
 
-- [ ] cd PTA-engenharia-de-dados
+cd PTA-engenharia-de-dados
 
 
 **Como Rodar**
 
 1 . Usando Docker
 
-- [ ] Certifique-se de que o Docker Desktop está em execução.
+- [x] Certifique-se de que o Docker Desktop está em execução.
 
-- [ ] Suba os serviços com o Docker Compose:
+- [x] Suba os serviços com o Docker Compose:
 
 docker-compose up --build
 
-- [ ] Acesse a aplicação em seu navegador no endereço:
+- [x] Acesse a aplicação em seu navegador no endereço:
 
 http://localhost:8000
 
-- [ ] Para acessar a documentação interativa da API (Swagger UI), vá para:
+- [x] Para acessar a documentação interativa da API (Swagger UI), vá para:
 
 http://localhost:8000/docs
 
 
 2. Localmente
 
-- [ ] Certifique-se de que esteja no diretório principal.
+- [x] Certifique-se de que esteja no diretório principal.
 
-- [ ] Instale as dependências:
+- [x] Instale as dependências:
 
 pip install -r ./requirements.txt
 
-- [ ] Execute o projeto:
+- [x] Execute o projeto:
 
 uvicorn app.main:app
 
-- [ ] Acesse a aplicação em seu navegador no endereço:
+- [x] Acesse a aplicação em seu navegador no endereço:
 
 http://localhost:8000
 
