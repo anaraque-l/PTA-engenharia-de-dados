@@ -55,6 +55,16 @@ def tratar_produtos(dados) -> pd.DataFrame:
     # calcula medianas e salva em cache
     for col in colunas:
         MEDIANAS_PRODUTOS[col] = df[col].median()
+    
+    # calcula medianas e salva em cache
+    for col in colunas:
+        MEDIANAS_PRODUTOS[col] = df[col].median()
+
+    # 🔵 PRINTA AS MEDIANAS AO FINAL DO CÁLCULO
+    print("\n====== MEDIANAS CALCULADAS NO FULL LOAD ======")
+    for coluna, mediana in MEDIANAS_PRODUTOS.items():
+        print(f"{coluna}: {mediana}")
+    print("==============================================\n")
 
 
     # preenche NaN com medianas

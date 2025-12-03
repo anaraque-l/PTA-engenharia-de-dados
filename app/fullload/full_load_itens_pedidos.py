@@ -123,8 +123,34 @@ def full_load_itens_pedidos(pedidos_ids, produtos_ids, vendedores_ids):
     print("Lendo dados da planilha origem...")
     df_origem = ler_origem(client)
 
-    print("Enviando itens para a API...")
-    df_tratado = tratar_itens_em_chunks(df_origem, pedidos_ids, produtos_ids, vendedores_ids)
+    # ====================================================
+    # 🔥 CALCULA AS MEDIANAS GLOBAIS (ANTES DO TRATAMENTO)
+    # ====================================================
+    df_num = df_origem.copy()
+    df_num["price"] = pd.to_numeric(df_num["price"], errors="coerce")
+    df_num["freight_value"] = pd.to_numeric(df_num["freight_value"], errors="coerce")
+
+    MEDIANA_PRICE_GLOBAL = df_num["price"].median()
+    MEDIANA_FREIGHT_GLOBAL = df_num["freight_value"].median()
+
+    print("\n====== MEDIANAS GLOBAIS ======")
+    print("MEDIANA_PRICE:   ", MEDIANA_PRICE_GLOBAL)
+    print("MEDIANA_FREIGHT: ", MEDIANA_FREIGHT_GLOBAL)
+    print("================================\n")
+
+    # ====================================================
+    # 🔥 TRATAR TUDO DE UMA VEZ (SEM CHUNKS)
+    # ====================================================
+    print("Tratando todos os itens de uma vez...")
+
+    df_tratado = limpar_itens(
+        df_origem.to_dict(orient="records"),
+        pedidos_ids,
+        produtos_ids,
+        vendedores_ids
+    )
+
+    df_tratado = pd.DataFrame(df_tratado)
 
     print("Escrevendo itens tratados na planilha destino...")
     escrever_destino(client, df_tratado)

@@ -135,6 +135,7 @@ def limpar_itens(
 
     df = pd.DataFrame(lista_raw)
 
+   
     # calcula medianas a partir do dataset completo
     MEDIANA_PRICE = pd.to_numeric(df["price"], errors="coerce").median()
     MEDIANA_FREIGHT = pd.to_numeric(df["freight_value"], errors="coerce").median()
@@ -144,7 +145,14 @@ def limpar_itens(
     if pd.isna(MEDIANA_FREIGHT):
         MEDIANA_FREIGHT = 0.0
 
+    # 🔵 PRINTA AS MEDIANAS PARA DEBUGAR O FULL LOAD
+    print("\n====== MEDIANAS CALCULADAS EM ITENS_PEDIDOS ======")
+    print(f"MEDIANA_PRICE:   {MEDIANA_PRICE}")
+    print(f"MEDIANA_FREIGHT: {MEDIANA_FREIGHT}")
+    print("===================================================\n")
+
     itens_limpos = []
+
 
     for idx, row in enumerate(lista_raw):
         try:
