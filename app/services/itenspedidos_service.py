@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 #  (usadas no FULL LOAD E NO TRATAR-UMA-LINHA)
 # ===========================================================
 
-MEDIANA_PRICE: float | None = None
-MEDIANA_FREIGHT: float | None = None
+MEDIANA_PRICE: float = 74.99
+MEDIANA_FREIGHT: float = 16.28
 
 
 # ===========================================================
@@ -62,12 +62,6 @@ def limpar_um_item(
     price_mediana: float | None = None,
     freight_mediana: float | None = None,
 ) -> ItensPedidosClean:
-    """
-    - Aplica integridade referencial (order_id, product_id, seller_id)
-    - Usa medianas:
-        - se vierem como parâmetro → prioriza
-        - senão → usa MEDIANA_* global calculada no FULL LOAD
-    """
 
     # ---------- 1) INTEGRIDADE REFERENCIAL ----------
     if raw.order_id not in pedidos_ids:
@@ -85,15 +79,9 @@ def limpar_um_item(
     except Exception:
         raise ValueError(f"order_item_id inválido: {raw.order_item_id}")
 
-    # ---------- 3) MEDIANAS ----------
-    global MEDIANA_PRICE, MEDIANA_FREIGHT
-
-    # se não vier por parâmetro, usa a global
-    if price_mediana is None:
-        price_mediana = MEDIANA_PRICE if MEDIANA_PRICE is not None else 0.0
-
-    if freight_mediana is None:
-        freight_mediana = MEDIANA_FREIGHT if MEDIANA_FREIGHT is not None else 0.0
+    # ---------- 3) MEDIANAS (USAR FIXAS SEMPRE) ----------
+    price_mediana = MEDIANA_PRICE
+    freight_mediana = MEDIANA_FREIGHT
 
     # price
     price = parse_numeric(raw.price)
@@ -118,6 +106,7 @@ def limpar_um_item(
         price=price,
         freight_value=freight_value
     )
+
 
 
 # ===========================================================
