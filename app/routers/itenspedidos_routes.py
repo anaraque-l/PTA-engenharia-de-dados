@@ -1,57 +1,68 @@
 from fastapi import APIRouter
-from typing import List, Optional
+from typing import List
 import logging
 
-from app.schemas.itenspedidos_schema import ItensPedidosRaw
-from app.schemas.itenspedidos_schema import ItensPedidosClean
+from app.schemas.itenspedidos_schema import ItensPedidosRaw, ItensPedidosClean
 from app.services.itenspedidos_service import limpar_um_item
+from app.cache_ids import carregar_ids
 
-# Configura o logger
+# Carrega IDs verdadeiros das tabelas reais
+pedidos_ids, produtos_ids, vendedores_ids = carregar_ids()
+
 logger = logging.getLogger(__name__)
-
 router = APIRouter()
 
+
+# ===========================================================
+# 💥 ENDPOINT FULL (processa vários itens)
+# ===========================================================
 @router.post("/limpar-itens-pedidos", response_model=List[ItensPedidosClean])
-def limpar_itens(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
+def limpar_itens_full(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
     
-    # Lista para armazenar apenas os registros limpos e válidos
     itens_limpos: List[ItensPedidosClean] = []
-    
-    # Processa cada item individualmente para aplicar o descarte seletivo
+
     for i, item_raw in enumerate(dados):
         try:
-            # tenta limpar o item (aqui o service lança ValueError se order_item_id for inválido)
-            item_clean = limpar_um_item(item_raw)
+            item_clean = limpar_um_item(
+                item_raw,
+                pedidos_ids,
+                produtos_ids,
+                vendedores_ids
+            )
             itens_limpos.append(item_clean)
-            
-        except ValueError as e:
-            # Captura a exceção lançada pelo service e descarta o registro.
-            # para ajudar vocês em debugs futuros, adicionei o motivo de descarte no log 
-            logger.warning(f"DESCARTE DE REGISTRO: Item {i+1} falhou na validação de dados críticos. Motivo: {e}")
-            
-        except Exception as e:
-            # captura qualquer outra exceção inesperada 
-            logger.error(f"ERRO INESPERADO: Item {i+1} falhou com erro desconhecido: {e}")
 
-    # Retorna a lista de itens limpos. 
+        except ValueError as e:
+            logger.warning(f"[DESCARTADO] Item {i+1}: {e}")
+
+        except Exception as e:
+            logger.error(f"[ERRO DESCONHECIDO] Item {i+1}: {e}")
+
     return itens_limpos
 
-@router.post("/limpar-itens-pedidos-incremental", response_model=List[ItensPedidosClean])
-def limpar_itens(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
-    
-    # Processa o item para aplicar o descarte seletivo
-    try:
-        # tenta limpar o item (aqui o service lança ValueError se order_item_id for inválido)
-        item_clean = limpar_um_item(dados[0])
-            
-    except ValueError as e:
-        # Captura a exceção lançada pelo service e descarta o registro.
-        # para ajudar vocês em debugs futuros, adicionei o motivo de descarte no log 
-        logger.warning(f"DESCARTE DE REGISTRO: Item 1 (único) falhou na validação de dados críticos. Motivo: {e}")
-            
-    except Exception as e:
-        # captura qualquer outra exceção inesperada 
-        logger.error(f"ERRO INESPERADO: Item 1 (único) falhou com erro desconhecido: {e}")
 
-    # Retorna uma lista de um item limpo 
-    return [item_clean]
+
+# ===========================================================
+# ⚡ ENDPOINT INCREMENTAL (somente 1 item)
+# ===========================================================
+@router.post("/limpar-itens-pedidos-incremental", response_model=List[ItensPedidosClean])
+def limpar_itens_incremental(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
+
+    item_raw = dados[0]   # sempre vem só um
+
+    try:
+        item_clean = limpar_um_item(
+            item_raw,
+            pedidos_ids,
+            produtos_ids,
+            vendedores_ids
+        )
+
+        return [item_clean]
+
+    except ValueError as e:
+        logger.warning(f"[DESCARTADO] Item incremental falhou. Motivo: {e}")
+        return []
+
+    except Exception as e:
+        logger.error(f"[ERRO INESPERADO] Item incremental: {e}")
+        return []

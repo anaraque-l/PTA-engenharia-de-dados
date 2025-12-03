@@ -5,7 +5,7 @@ import uvicorn
 from app.routers.produto_router import router as produto_router
 from app.routers.vendedor_routes import router as vendedor_router
 from app.routers.itenspedidos_routes import router as itenspedidos_router
-from app.routers import pedidos_router
+from app.routers.pedidos_router import router as pedidos_router
 
 
 
@@ -26,7 +26,7 @@ app = FastAPI(
 app.include_router(produto_router, prefix="/produto", tags=["Produtos"])
 app.include_router(vendedor_router, prefix="/vendedores", tags=["Vendedores"])
 app.include_router(itenspedidos_router, prefix="/itens-pedidos", tags=["ItensPedidos"])
-app.include_router(pedidos_router.router, prefix="/pedidos", tags=["Pedidos"])
+app.include_router(pedidos_router, prefix="/pedidos", tags=["Pedidos"])
 
 
 

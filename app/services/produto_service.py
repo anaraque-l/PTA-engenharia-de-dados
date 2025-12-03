@@ -4,7 +4,20 @@ import pandas as pd
 
 
 
-MEDIANAS_PRODUTOS = {}
+# ===========================================================
+#  MEDIANAS FIXAS (GERADAS NO FULL LOAD ORIGINAL)
+# ===========================================================
+
+MEDIANAS_PRODUTOS = {
+    "product_name_lenght": 51,
+    "product_description_lenght": 591,
+    "product_photos_qty": 1,
+    "product_weight_g": 700,
+    "product_length_cm": 25,
+    "product_height_cm": 13,
+    "product_width_cm": 20
+}
+
 
 
 
@@ -79,13 +92,11 @@ def tratar_produtos(dados) -> pd.DataFrame:
 
 
 
-
 # ---------------------------
-# INCREMENTAL - trata somente 1 linha usando medianas pré-carregadas
+# INCREMENTAL - usa medianas fixas
 # ---------------------------
 def tratar_produto_incremental(dado: dict) -> dict:
     df = pd.DataFrame([dado])
-
 
     df['product_category_name'] = (
         df['product_category_name']
@@ -94,7 +105,6 @@ def tratar_produto_incremental(dado: dict) -> dict:
         .replace("", "indefinido")
         .fillna("indefinido")
     )
-
 
     colunas = [
         'product_name_lenght',
@@ -106,11 +116,10 @@ def tratar_produto_incremental(dado: dict) -> dict:
         'product_width_cm'
     ]
 
-
+    # sempre usar medianas fixas
     for col in colunas:
         df[col] = pd.to_numeric(df[col], errors='coerce')
         df[col] = df[col].fillna(MEDIANAS_PRODUTOS[col]).astype(int)
-
 
     df = df.rename(columns={
         'product_category_name': 'categoria_limpa',
@@ -122,6 +131,5 @@ def tratar_produto_incremental(dado: dict) -> dict:
         'product_height_cm': 'altura_limpa',
         'product_width_cm': 'largura_limpa'
     })
-
 
     return df.to_dict(orient="records")[0]
