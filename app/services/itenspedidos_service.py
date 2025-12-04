@@ -11,8 +11,7 @@ from app.schemas.itenspedidos_schema import (
 logger = logging.getLogger(__name__)
 
 # ===========================================================
-#  VARIÁVEIS GLOBAIS PARA AS MEDIANAS
-#  (usadas no FULL LOAD E NO TRATAR-UMA-LINHA)
+#  MEDIANAS FIXAS (VALORES PADRÃO SEGUROS)
 # ===========================================================
 
 MEDIANA_PRICE: float = 74.99
@@ -20,15 +19,33 @@ MEDIANA_FREIGHT: float = 16.28
 
 
 # ===========================================================
-#  AUXILIARES
+#  FUNÇÃO DE SEGURANÇA PARA PEGAR MEDIANA
+# ===========================================================
+
+def get_mediana_segura(valor: Optional[float], fallback: float) -> float:
+    """
+    Retorna uma mediana válida.
+    Se receber None, NaN ou inválido → usa o fallback.
+    """
+    if valor is None or pd.isna(valor):
+        return fallback
+    return float(valor)
+
+
+# ===========================================================
+#  AUXILIARES PARA PARSE ROBUSTO
 # ===========================================================
 
 def parse_date(valor: Optional[str]) -> Optional[datetime]:
-    if not valor or str(valor).strip() == "":
+    """Converte string em datetime ou retorna None."""
+    if valor is None:
+        return None
+
+    valor = str(valor).strip()
+    if valor in ("", "nan", "NaN", "None", "null"):
         return None
 
     dt = pd.to_datetime(valor, errors="coerce")
-
     if pd.isna(dt):
         return None
 
@@ -39,11 +56,13 @@ def parse_date(valor: Optional[str]) -> Optional[datetime]:
 
 
 def parse_numeric(valor: Optional[str]) -> Optional[float]:
+    """Converte string numérica em float. Aceita '', 'nan', None."""
     if valor is None:
         return None
 
     valor = str(valor).strip()
-    if valor == "":
+
+    if valor in ("", "nan", "NaN", "None", "null"):
         return None
 
     num = pd.to_numeric(valor, errors="coerce")
@@ -51,7 +70,7 @@ def parse_numeric(valor: Optional[str]) -> Optional[float]:
 
 
 # ===========================================================
-#  🔥 LIMPAR SOMENTE UM ITEM (USA MEDIANAS GLOBAIS)
+#  🔥 LIMPAR UM ITEM (USA MEDIANAS FIXAS)
 # ===========================================================
 
 def limpar_um_item(
@@ -73,15 +92,15 @@ def limpar_um_item(
     if raw.seller_id not in vendedores_ids:
         raise ValueError(f"ORFAO: seller_id inválido: {raw.seller_id}")
 
-    # ---------- 2) VALIDAÇÃO CRÍTICA ----------
+    # ---------- 2) VALIDAÇÃO DO ORDER_ITEM_ID ----------
     try:
         order_item_id = int(raw.order_item_id)
     except Exception:
         raise ValueError(f"order_item_id inválido: {raw.order_item_id}")
 
-    # ---------- 3) MEDIANAS (USAR FIXAS SEMPRE) ----------
-    price_mediana = MEDIANA_PRICE
-    freight_mediana = MEDIANA_FREIGHT
+    # ---------- 3) RESGATE DAS MEDIANAS DE FORMA SEGURA ----------
+    price_mediana = get_mediana_segura(price_mediana or MEDIANA_PRICE, fallback=0.0)
+    freight_mediana = get_mediana_segura(freight_mediana or MEDIANA_FREIGHT, fallback=0.0)
 
     # price
     price = parse_numeric(raw.price)
@@ -103,14 +122,13 @@ def limpar_um_item(
         product_id=raw.product_id,
         seller_id=raw.seller_id,
         shipping_limit_date=shipping_limit_date,
-        price=price,
-        freight_value=freight_value
+        price=float(price),
+        freight_value=float(freight_value),
     )
 
 
-
 # ===========================================================
-#  🔥 LIMPAR LISTA (FULL LOAD) — CALCULA E SALVA MEDIANAS
+#  🔥 FULL LOAD: CALCULA MEDIANAS DE FORMA SEGURA
 # ===========================================================
 
 def limpar_itens(
@@ -124,14 +142,13 @@ def limpar_itens(
 
     df = pd.DataFrame(lista_raw)
 
-    # calcula medianas a partir do dataset completo
-    MEDIANA_PRICE = pd.to_numeric(df["price"], errors="coerce").median()
-    MEDIANA_FREIGHT = pd.to_numeric(df["freight_value"], errors="coerce").median()
+    # medianas sempre calculadas com segurança
+    price_med = pd.to_numeric(df.get("price"), errors="coerce").median()
+    freight_med = pd.to_numeric(df.get("freight_value"), errors="coerce").median()
 
-    if pd.isna(MEDIANA_PRICE):
-        MEDIANA_PRICE = 0.0
-    if pd.isna(MEDIANA_FREIGHT):
-        MEDIANA_FREIGHT = 0.0
+    # salva medianas somente se forem válidas
+    MEDIANA_PRICE = get_mediana_segura(price_med, fallback=MEDIANA_PRICE)
+    MEDIANA_FREIGHT = get_mediana_segura(freight_med, fallback=MEDIANA_FREIGHT)
 
     itens_limpos = []
 
@@ -144,7 +161,6 @@ def limpar_itens(
                 pedidos_ids=pedidos_ids,
                 produtos_ids=produtos_ids,
                 vendedores_ids=vendedores_ids,
-                # aqui eu passo explicitamente, mas também já estão salvas nas globais
                 price_mediana=MEDIANA_PRICE,
                 freight_mediana=MEDIANA_FREIGHT,
             )
