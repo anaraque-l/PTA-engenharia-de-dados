@@ -82,6 +82,10 @@ def limpar_um_item(
     price_mediana: float | None = None,
     freight_mediana: float | None = None,
 ) -> ItensPedidosClean:
+    
+    
+    seller_id = raw.seller_id.strip().lower()
+
 
     # ---------- 1) INTEGRIDADE REFERENCIAL ----------
     if raw.order_id not in pedidos_ids:
@@ -90,7 +94,7 @@ def limpar_um_item(
     if raw.product_id not in produtos_ids:
         raise ValueError(f"ORFAO: product_id inválido: {raw.product_id}")
 
-    if raw.seller_id not in vendedores_ids:
+    if seller_id not in vendedores_ids:
         raise ValueError(f"ORFAO: seller_id inválido: {raw.seller_id}")
 
     # ---------- 2) VALIDAÇÃO DO ORDER_ITEM_ID ----------
