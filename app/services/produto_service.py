@@ -1,11 +1,8 @@
-
 import pandas as pd
 
 
-
-
 # ===========================================================
-#  MEDIANAS FIXAS (GERADAS NO FULL LOAD ORIGINAL)
+#  MEDIANAS FIXAS (VALORES INICIAIS SEGUROS)
 # ===========================================================
 
 MEDIANAS_PRODUTOS = {
@@ -15,16 +12,30 @@ MEDIANAS_PRODUTOS = {
     "product_weight_g": 700,
     "product_length_cm": 25,
     "product_height_cm": 13,
-    "product_width_cm": 20
+    "product_width_cm": 20,
 }
 
 
+# ===========================================================
+#  FUNÇÃO DE SEGURANÇA PARA PEGAR MEDIANA SEM RISCO DE NaN
+# ===========================================================
+
+def get_mediana_segura(col: str):
+    """Retorna valor seguro para a mediana, sem permitir NaN ou None."""
+    val = MEDIANAS_PRODUTOS.get(col)
+
+    if val is None or pd.isna(val):
+        # fallback seguro
+        return 0
+
+    return val
 
 
 
-# ---------------------------
-# FULL LOAD - trata tudo e calcula medianas
-# ---------------------------
+# ===========================================================
+#  FULL LOAD - CONSTRÓI AS MEDIANAS
+# ===========================================================
+
 def tratar_produtos(dados) -> pd.DataFrame:
     # aceita DataFrame, lista de dicts ou lista de modelos Pydantic
     if isinstance(dados, pd.DataFrame):
@@ -38,8 +49,7 @@ def tratar_produtos(dados) -> pd.DataFrame:
                 linhas.append(d)
         df = pd.DataFrame(linhas)
 
-
-    # Limpa categoria
+    # categoria limpa
     df['product_category_name'] = (
         df['product_category_name']
         .astype(str)
@@ -48,8 +58,6 @@ def tratar_produtos(dados) -> pd.DataFrame:
         .fillna("indefinido")
     )
 
-
-    # converte colunas numéricas
     colunas = [
         'product_name_lenght',
         'product_description_lenght',
@@ -60,22 +68,20 @@ def tratar_produtos(dados) -> pd.DataFrame:
         'product_width_cm'
     ]
 
-
+    # converte para numérico
     for col in colunas:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-
-    # calcula medianas e salva em cache
+    # calcula medianas APENAS se não forem NaN
     for col in colunas:
-        MEDIANAS_PRODUTOS[col] = df[col].median()
+        med = df[col].median()
+        if not pd.isna(med):
+            MEDIANAS_PRODUTOS[col] = med  # atualiza somente se mediana válida
 
-
-    # preenche NaN com medianas
+    # preenche usando as medianas seguras
     for col in colunas:
-        df[col] = df[col].fillna(MEDIANAS_PRODUTOS[col]).astype(int)
+        df[col] = df[col].fillna(get_mediana_segura(col)).astype(int)
 
-
-    # renomeia colunas limpas
     df = df.rename(columns={
         'product_category_name': 'categoria_limpa',
         'product_name_lenght': 'len_nome_limpa',
@@ -87,14 +93,14 @@ def tratar_produtos(dados) -> pd.DataFrame:
         'product_width_cm': 'largura_limpa'
     })
 
-
     return df
 
 
 
-# ---------------------------
-# INCREMENTAL - usa medianas fixas
-# ---------------------------
+# ===========================================================
+#  INCREMENTAL - USA SEMPRE AS MEDIANAS FIXAS SEGURAS
+# ===========================================================
+
 def tratar_produto_incremental(dado: dict) -> dict:
     df = pd.DataFrame([dado])
 
@@ -116,10 +122,11 @@ def tratar_produto_incremental(dado: dict) -> dict:
         'product_width_cm'
     ]
 
-    # sempre usar medianas fixas
     for col in colunas:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-        df[col] = df[col].fillna(MEDIANAS_PRODUTOS[col]).astype(int)
+
+        med_seguranca = get_mediana_segura(col)
+        df[col] = df[col].fillna(med_seguranca).astype(int)
 
     df = df.rename(columns={
         'product_category_name': 'categoria_limpa',
