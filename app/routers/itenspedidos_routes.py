@@ -7,6 +7,10 @@ from app.services.itenspedidos_service import limpar_um_item
 
 from app.dados import pedidos_ids, produtos_ids, vendedores_ids
 
+print("Pedidos IDs:", len(pedidos_ids))
+print("Produtos IDs:", len(produtos_ids))
+print("Vendedores IDs:", len(vendedores_ids))
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
