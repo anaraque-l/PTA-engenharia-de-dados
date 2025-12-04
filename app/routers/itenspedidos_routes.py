@@ -5,8 +5,7 @@ import logging
 from app.schemas.itenspedidos_schema import ItensPedidosRaw, ItensPedidosClean
 from app.services.itenspedidos_service import limpar_um_item
 
-# Agora importamos os IDs CARREGADOS pelo startup do main.py
-from main import pedidos_ids, produtos_ids, vendedores_ids
+from app.dados import pedidos_ids, produtos_ids, vendedores_ids
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
