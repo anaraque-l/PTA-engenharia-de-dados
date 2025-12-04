@@ -6,7 +6,7 @@ from app.routers.produto_router import router as produto_router
 from app.routers.vendedor_routes import router as vendedor_router
 from app.routers.itenspedidos_routes import router as itenspedidos_router
 from app.routers.pedidos_router import router as pedidos_router
-
+from app.cache_ids import carregar_ids
 
 
 
@@ -18,7 +18,17 @@ app = FastAPI(
     version="1.0.0"
 )
 
+pedidos_ids = set()
+produtos_ids = set()
+vendedores_ids = set()
 
+@app.on_event("startup")
+def startup_event():
+    global pedidos_ids, produtos_ids, vendedores_ids
+    
+    print("🔵 Carregando IDs do Google Sheets...")
+    pedidos_ids, produtos_ids, vendedores_ids = carregar_ids()
+    print(f"🟢 IDs carregados: {len(pedidos_ids)} pedidos, {len(produtos_ids)} produtos, {len(vendedores_ids)} vendedores.")
 
 
 
