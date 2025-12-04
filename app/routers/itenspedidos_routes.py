@@ -4,10 +4,9 @@ import logging
 
 from app.schemas.itenspedidos_schema import ItensPedidosRaw, ItensPedidosClean
 from app.services.itenspedidos_service import limpar_um_item
-from app.cache_ids import carregar_ids
 
-# Carrega IDs verdadeiros das tabelas reais
-pedidos_ids, produtos_ids, vendedores_ids = carregar_ids()
+# Agora importamos os IDs CARREGADOS pelo startup do main.py
+from main import pedidos_ids, produtos_ids, vendedores_ids
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -47,7 +46,7 @@ def limpar_itens_full(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
 @router.post("/limpar-itens-pedidos-incremental", response_model=List[ItensPedidosClean])
 def limpar_itens_incremental(dados: List[ItensPedidosRaw]) -> List[ItensPedidosClean]:
 
-    item_raw = dados[0]   # sempre vem só um
+    item_raw = dados[0]   # sempre vem só um item
 
     try:
         item_clean = limpar_um_item(
