@@ -121,6 +121,46 @@ Em **Itens Pedidos**, IDs são validados contra:
 
 Linhas órfãs são descartadas.
 
+### ✨ Extras implementados em **Pedidos**
+
+Além das validações e conversões já descritas, o pipeline de Pedidos inclui regras adicionais que garantem consistência temporal e integridade auditável dos dados:
+
+#### 🧹 Normalização de Timestamp
+Todos os campos de data foram convertidos para `datetime` e normalizados para timezone padrão, permitindo análises temporais consistentes.
+
+#### ⏱️ Cálculo Automático de Intervalos
+Foram criadas colunas derivadas:
+- tempo entre compra e aprovação
+- tempo entre aprovação e envio
+- tempo total até entrega
+
+Esses indicadores permitem análise de SLA, detecção de gargalos e ranking de performance.
+
+#### 📊 Marcação de Outliers
+Pedidos com durações fora da curva recebem:
+```
+is_outlier = True
+```
+Esses registros podem ser analisados separadamente para diagnóstico.
+
+#### 🔗 Integridade com Itens
+IDs foram validados contra:
+- produtos
+- vendedores
+- itens
+
+Pedidos “órfãos” são descartados, garantindo consistência entre tabelas.
+
+#### 📦 Estrutura preparada para Data Warehouse
+Ao final, o dataset contém:
+- chave primária única
+- timestamps normalizados
+- fatos temporais calculados
+- flag de outlier
+
+Pronto para agregações, dashboards e relatórios.
+
+
 ---
 
 ## 4. Estratégias de Carga
@@ -243,7 +283,7 @@ docker compose up -d
 
 ---
 
-## 9. Conclusão
+## 8. Conclusão
 
 Este pipeline entrega:
 
