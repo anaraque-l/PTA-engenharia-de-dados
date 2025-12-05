@@ -42,7 +42,11 @@ async def limpar_pedidos(dados: List[PedidosRaw]) -> List[PedidosClean]:
 async def tratar_uma_linha(dados: list[PedidosRaw]):
    
     try:
-        tratado = tratar_pedido(dados)
+        if isinstance(dados, list):
+            tratado = tratar_pedido(dados[0])
+        else:
+            tratado = tratar_pedido(dados)
+            
         return {"status": "ok", "pedido": tratado}
 
 
