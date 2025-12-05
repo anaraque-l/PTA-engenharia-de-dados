@@ -1,123 +1,299 @@
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
-  <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados">
-    <img src="https://ci3.googleusercontent.com/mail-sig/AIorK4zWbC3U-G_vTTZE6rUQqJjzL8u7WNZjzhEaYi9z7slJn8vNhgnFVootxjm377GVCdPGY_F64WolHmGJ" alt="Logo" width="180px">
-  </a>
+# 📦 O-MARKET — Pipeline de Engenharia de Dados
 
-  <h3 align="center">PTA Engenharia de Dados</h3>
+Este projeto implementa um **pipeline de engenharia de dados completo** para e-commerce, integrando:
 
-  <p align="center">
-  Este projeto foi criado em 2025.2 com a proposta de trazer a frente de engenharia de dados para o Processo de Treinamento de Área (PTA) do CITi. Ele foi desenvolvido com base em práticas modernas de engenharia de dados e tem como objetivo capacitar tecnicamente as pessoas aspirantes, alinhando-se às demandas atuais da empresa.
-    <br />
-    <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    ·
-    <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/CITi-UFPE/PTA-engenharia-de-dados/issues">Request Feature</a>
-  </p>
-</p>
+- Coleta  
+- Tratamento  
+- Integração  
+- Persistência  
+- Serviços de apoio
 
-<!-- TABLE OF CONTENTS -->
-<details open="open">
-  <summary><h2 style="display: inline-block">Tabela de Conteúdo</h2></summary>
-  <ol>
-    <li><a href="#sobre-o-projeto">Sobre o Projeto</a></li>
-    <li><a href="#como-instalar">Como Instalar</a></li>
-    <li><a href="#como-rodar">Como Rodar</a></li>
-    <li><a href="#contato">Contato</a></li>
-  </ol>
-</details>
+A arquitetura garante que os dados sejam:
 
-<br/>
+✔ íntegros  
+✔ deduplicados  
+✔ consistentes  
+✔ auditáveis  
+✔ continuamente atualizados
 
-## Sobre o Projeto
-<br/>
+---
 
-Este projeto foi desenvolvido para o Processo de Treinamento de Área (PTA) do CITi, com foco em engenharia de dados. Ele inclui uma API construída com FastAPI, utilizando boas práticas de desenvolvimento e uma estrutura modular para facilitar a manutenção e a escalabilidade. O objetivo principal do projeto é construir uma pipeline completa que consiga ser acessada via uma API.
+## 🛠 Tecnologias Utilizadas
 
-<br/>
+| Componente | Tecnologia |
+|---|---|
+| Linguagem | Python |
+| API | FastAPI |
+| Orquestração | n8n |
+| Storage | Google Sheets |
+| Full Load | Execução local via Uvicorn |
+| CI/CD | Branch `feat/fulloaddocker` |
+| Monitoração | Logs + E-mail via n8n |
 
-## Como Instalar
-<br/>
+---
 
-1. Certifique-se de que o **Python** e o **Docker Desktop** estão instalados em sua máquina.
+## 1. Arquitetura Geral
 
-2. Clone o repositório:
+A arquitetura segue o padrão **Extract → Transform → Load**, com dois modos complementares:
 
-   ```sh
-   git clone https://github.com/CITi-UFPE/PTA-engenharia-de-dados.git
-   ```
+### 🔁 Incremental (produção contínua)
+- executado **a cada 15 minutos**
+- processa **somente a última linha**
+- atualiza o warehouse continuamente
 
-3. Entre na pasta do projeto:
+### 🚀 Full Load (carga inicial)
+- executado **localmente via uvicorn**
+- branch: `feat/fulloaddocker`
+- processa **todo o dataset**
+- útil para reconstrução e sanity checks
 
-   ```sh
-   cd PTA-engenharia-de-dados
-   ```
+---
 
-<br/>
+## 2. Fluxo High-Level
 
-## Como Rodar
+```
+            +-----------------------------+
+            |           Usuário           |
+            +--------------+--------------+
+                           |
+                           v
+            +-----------------------------+
+            |       Coleta (Google)       |
+            |   Google Sheets - RAW DATA  |
+            +--------------+--------------+
+                           |
+            +--------------v--------------+
+            |             API             |
+            |         FastAPI             |
+            |  Conversões / Validações    |
+            +--------------+--------------+
+                           |
+            +--------------v--------------+
+            |  Warehouse (Google Sheets)  |
+            |         Dados Limpos        |
+            +--------------+--------------+
+                           |
+                           v
+                     +-----+-----+
+                     |   n8n     |
+                     | Orquestra |
+                     +-----------+
+```
 
-### Usando Docker
-<br/>
+---
 
-1. Certifique-se de que o Docker Desktop está em execução.
+## 3. Backend (FastAPI)
 
-2. Suba os serviços com o Docker Compose:
+### 3.1 Estrutura por Domínio
 
-   ```sh
-   docker-compose up --build
-   ```
+| Domínio | Schemas | Service |
+|---|---|---|
+| Pedidos | `app/schemas/pedidos_schema.py` | `app/services/pedidos_service.py` |
+| Produtos | `app/schemas/produto_schema.py` | `app/services/produto_service.py` |
+| Vendedores | `app/schemas/vendedor_schema.py` | `app/services/vendedor_service.py` |
+| Itens Pedidos | `app/schemas/itenspedidos_schema.py` | `app/services/itenspedidos_service.py` |
 
-3. Acesse a aplicação em seu navegador no endereço:
+---
 
-   ```
-   http://localhost:8000
-   ```
+### 3.2 Regras de Tratamento
 
-4. Para acessar a documentação interativa da API (Swagger UI), vá para:
+#### Sanitização de texto
+- remoção de espaços extras
+- padronização
+- substituição por underline (`_`)
+- preenchimento de nulos com `"indefinido"`
 
-   ```
-   http://localhost:8000/docs
-   ```
+#### Conversão de data
+- strings → datetime
+- validação de campos obrigatórios
 
-<br/>
+#### Conversão numérica
+- strings → float  
+- cálculo de **medianas**
+- nulos recebem mediana
+- reconversão para inteiros quando aplicável
 
-### Localmente
-<br/>
+#### Integridade referencial
+Em **Itens Pedidos**, IDs são validados contra:
+- Produtos
+- Pedidos
+- Vendedores
 
-1. Certifique-se de que esteja no diretório principal
+Linhas órfãs são descartadas.
 
-2. Instale as dependências: 
-    ```
-    pip install -r ./requirements.txt
-    ```
+### ✨ Extras implementados em **Pedidos**
 
-3. Execute o projeto: 
-    ```
-    uvicorn app.main:app
-    ```
+Além das validações e conversões já descritas, o pipeline de Pedidos inclui regras adicionais que garantem consistência temporal e integridade auditável dos dados:
 
-4. Acesse a aplicação em seu navegador no endereço:
+#### 🧹 Normalização de Timestamp
+Todos os campos de data foram convertidos para `datetime` e normalizados para timezone padrão, permitindo análises temporais consistentes.
 
-   ```
-   http://localhost:8000
-   ```
+#### ⏱️ Cálculo Automático de Intervalos
+Foram criadas colunas derivadas:
+- tempo entre compra e aprovação
+- tempo entre aprovação e envio
+- tempo total até entrega
 
-5. Para acessar a documentação interativa da API (Swagger UI), vá para:
+Esses indicadores permitem análise de SLA, detecção de gargalos e ranking de performance.
 
-   ```
-   http://localhost:8000/docs
-   ```
+#### 📊 Marcação de Outliers
+Pedidos com durações fora da curva recebem:
+```
+is_outlier = True
+```
+Esses registros podem ser analisados separadamente para diagnóstico.
 
-<br/>
+#### 🔗 Integridade com Itens
+IDs foram validados contra:
+- produtos
+- vendedores
+- itens
+
+Pedidos “órfãos” são descartados, garantindo consistência entre tabelas.
+
+#### 📦 Estrutura preparada para Data Warehouse
+Ao final, o dataset contém:
+- chave primária única
+- timestamps normalizados
+- fatos temporais calculados
+- flag de outlier
+
+Pronto para agregações, dashboards e relatórios.
 
 
-## Contato
-<br/>
+---
 
-- [CITi UFPE](https://github.com/CITi-UFPE) - contato@citi.org.br
-- [João Pedro Bezerra](https://github.com/jpbezera), Líder de Dados em 2025.2 - jpbmtl@cin.ufpe.br
+## 4. Estratégias de Carga
+
+### 🚀 Full Load (Carga Inicial)
+
+- não ocorre no n8n  
+- executado **localmente via uvicorn**
+- branch: `feat/fulloaddocker`
+
+Responsável por:
+
+- leitura integral dos arquivos brutos  
+- limpeza e tipagem  
+- deduplicação  
+- escrita massiva no warehouse
+
+Usado para:
+
+- primeira construção da base  
+- reconstrução completa  
+- sanity check de qualidade  
+
+---
+
+### 🔁 Incremental (Produção Contínua)
+
+- executado **a cada 15 minutos**
+- captura **somente a última linha**
+- custo computacional mínimo
+
+Fluxo:
+
+```
+Schedule Trigger (15 min)
+        ↓
+Read RAW sheet
+        ↓
+Seleciona apenas a última linha
+        ↓
+POST → FastAPI (tratamento)
+        ↓
+Append to clean Warehouse sheet
+        ↓
+Send Email Notification
+```
+
+---
+
+## 5. Workflows n8n
+
+### Pedidos
+
+| Modo | Execução |
+|---|---|
+| Full Load | via backend (Uvicorn) |
+| Incremental | última linha a cada 15 min |
+
+---
+
+### Produtos
+
+| Modo | Execução |
+|---|---|
+| Full Load | manual, batch 200 |
+| Incremental | 15 min, batch 200 |
+
+---
+
+### Vendedores
+
+| Modo | Execução |
+|---|---|
+| Full Load | manual + dedupe |
+| Incremental | upsert (update/insert) |
+
+---
+
+### Itens Pedidos
+
+| Modo | Execução |
+|---|---|
+| Full Load | via backend |
+| Incremental | última linha, rejeita órfãos por FK |
+
+---
+
+## 6. Garantias do Sistema
+
+✔ Tipagem uniforme  
+✔ Deduplicação  
+✔ Integridade referencial  
+✔ Null-safe com medianas  
+✔ Erros capturados e logados  
+✔ Persistência previsível  
+✔ Escalável
+
+---
+
+## 7. Deploy & Execução
+
+### API normal
+
+```
+uvicorn app.main:app --reload
+```
+
+### Full Load
+
+```
+git checkout feat/fulloaddocker
+uvicorn app.main:app
+```
+
+### n8n
+
+```
+docker compose up -d
+```
+
+---
+
+## 8. Conclusão
+
+Este pipeline entrega:
+
+✔ Confiabilidade operacional  
+✔ Dados limpos e íntegros  
+✔ Baixo custo computacional  
+✔ Manutenção simples  
+✔ Atualização contínua  
+✔ Independência entre Full + Incremental  
+✔ Arquitetura escalável e sustentável
+
+---
+
